@@ -1,5 +1,5 @@
 import arcpy, os
-
+from Intersection import Intersection
 
 def main(streamNetwork,
          dem,
@@ -27,3 +27,64 @@ def main(streamNetwork,
         arcpy.Clip_analysis(streamNetwork, clippingRegion, clippedStreamNetwork)
     else:
         clippedStreamNetwork = streamNetwork
+
+    arcpy.AddMessage("Calculating Flow Accumulation...")
+    filledDEM = arcpy.sa.Fill(dem)
+    flowDirection = arcpy.sa.FlowDirection(filledDEM)
+    flowAccumulation = arcpy.sa.FlowAccumulation(flowDirection)  # Calculates the flow accumulation to use in findWidth()
+    cellSizeX = arcpy.GetRasterProperties_management(flowAccumulation, "CELLSIZEX")
+    cellSizeY = arcpy.GetRasterProperties_management(flowAccumulation, "CELLSIZEY")
+    cellSize = float(cellSizeX.getOutput(0)) * float(cellSizeY.getOutput(0))
+
+    intersectionArray = findIntersections(clippedStreamNetwork, tempData)
+
+    calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData)
+
+    writeOutput(intersectionArray, outputDataPath)
+
+
+def findIntersections(streamNetwork, tempData):
+    #TODO: Write findIntersections()
+    arcpy.AddMessage("Finding intersections...")
+    numReaches = int(arcpy.GetCount_management(streamNetwork).getOutput(0))
+    numReachesString = str(numReaches)
+    arcpy.AddMessage("Reaches in network: " + numReachesString)
+    intersections = []
+    points = []
+    polylineCursor = arcpy.da.SearchCursor(streamNetwork, ["SHAPE@"])
+    for i in range(numReaches):
+        
+
+
+    return intersections
+
+
+def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData):
+    #TODO: Write calculateImpact()
+    i = 0
+
+
+def writeOutput(intesectionArray, outputDataPath):
+    i = 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
