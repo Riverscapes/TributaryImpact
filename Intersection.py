@@ -1,5 +1,5 @@
 class Intersection(object):
-    def __init__(self, point, mainstem, tributary):
+    def __init__(self, point, streamOne, streamTwo):
         self.point = point
-        self.mainstem = mainstem
-        self.tributary = tributary
+        self.streamOne = streamOne
+        self.streamTwo = streamTwo

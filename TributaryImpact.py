@@ -1,5 +1,6 @@
 import arcpy, os
 from Intersection import Intersection
+from AVLPointsTree import AVLPointsTree
 
 def main(streamNetwork,
          dem,
@@ -28,6 +29,8 @@ def main(streamNetwork,
     else:
         clippedStreamNetwork = streamNetwork
 
+    spatialReference = arcpy.Describe(streamNetwork).spatialReference
+
     arcpy.AddMessage("Calculating Flow Accumulation...")
     filledDEM = arcpy.sa.Fill(dem)
     flowDirection = arcpy.sa.FlowDirection(filledDEM)
@@ -40,7 +43,7 @@ def main(streamNetwork,
 
     calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData)
 
-    writeOutput(intersectionArray, outputDataPath)
+    writeOutput(intersectionArray, outputDataPath, outputName, spatialReference)
 
 
 def findIntersections(streamNetwork, tempData):
@@ -49,13 +52,25 @@ def findIntersections(streamNetwork, tempData):
     numReaches = int(arcpy.GetCount_management(streamNetwork).getOutput(0))
     numReachesString = str(numReaches)
     arcpy.AddMessage("Reaches in network: " + numReachesString)
+
     intersections = []
-    points = []
+    points = AVLPointsTree()
+
     polylineCursor = arcpy.da.SearchCursor(streamNetwork, ["SHAPE@"])
-    for i in range(numReaches):
-        
-
-
+    row = polylineCursor.next()
+    previousStream = row[0]
+    for i in range(numReaches - 1):
+        """If the current stream has a point that """
+        arcpy.AddMessage("Evaluating Reach: " + str(i))
+        row = polylineCursor.next()
+        currentStream = row[0]
+        if not currentStream.firstPoint.equals(previousStream.firstPoint) and not currentStream.firstPoint.equals(previousStream.lastPoint):
+            if not currentStream.lastPoint.equals(previousStream.firstPoint) and not currentStream.lastPoint.equals(previousStream.lastPoint):
+                pointInTree = points.findPoint(previousStream.lastPoint)
+                if pointInTree is not None:
+                    intersections.append(Intersection(pointInTree.value, previousStream, pointInTree.stream))
+                else:
+                    points.addNode(previousStream.lastPoint, previousStream)
     return intersections
 
 
@@ -64,8 +79,20 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData
     i = 0
 
 
-def writeOutput(intesectionArray, outputDataPath):
-    i = 0
+def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference):
+    arcpy.env.workspace = outputDataPath
+
+    outputShape = arcpy.CreateFeatureclass_management(outputDataPath, outputName+ ".shp", "POINT", "", "DISABLED", "DISABLED", spatialReference)
+
+    insertCursor = arcpy.da.InsertCursor(outputShape, ["SHAPE@"])
+    for intersection in intersectionArray:
+        insertCursor.insertRow([intersection.point])
+    del insertCursor
+
+    tempLayer = outputDataPath + "\\" +  outputName+ "_lyr"
+    outputLayer = outputDataPath + "\\" +  outputName+ ".lyr"
+    arcpy.MakeFeatureLayer_management(outputShape, tempLayer)
+    arcpy.SaveToLayerFile_management(tempLayer, outputLayer)
 
 
 
