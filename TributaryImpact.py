@@ -47,7 +47,6 @@ def main(streamNetwork,
 
 
 def findIntersections(streamNetwork, tempData):
-    #TODO: Write findIntersections()
     arcpy.AddMessage("Finding intersections...")
     numReaches = int(arcpy.GetCount_management(streamNetwork).getOutput(0))
     numReachesString = str(numReaches)
