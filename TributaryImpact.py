@@ -64,13 +64,30 @@ def findIntersections(streamNetwork, tempData):
         arcpy.AddMessage("Evaluating Reach: " + str(i))
         row = polylineCursor.next()
         currentStream = row[0]
+        arcpy.AddMessage("Point: " + str(previousStream.lastPoint.X) + " " + str(previousStream.lastPoint.Y))
+        pointInTree = points.findPoint(previousStream.lastPoint)
+        if pointInTree is not None:
+            intersections.append(Intersection(previousStream.lastPoint, previousStream, pointInTree.stream))
+        else:
+            arcpy.AddMessage("Size: " + str(points.getSize()))
+            arcpy.AddMessage("Height: " + str(points.getHeight()))
+            points.addNode(previousStream.lastPoint, previousStream)
+
+        """
         if not currentStream.firstPoint.equals(previousStream.firstPoint) and not currentStream.firstPoint.equals(previousStream.lastPoint):
             if not currentStream.lastPoint.equals(previousStream.firstPoint) and not currentStream.lastPoint.equals(previousStream.lastPoint):
+                arcpy.AddMessage("Point: " + str(previousStream.lastPoint.X) + " " + str(previousStream.lastPoint.Y))
                 pointInTree = points.findPoint(previousStream.lastPoint)
                 if pointInTree is not None:
-                    intersections.append(Intersection(pointInTree.value, previousStream, pointInTree.stream))
+                    intersections.append(Intersection(previousStream.lastPoint, previousStream, pointInTree.stream))
                 else:
-                    points.addNode(previousStream.lastPoint, previousStream)
+                    arcpy.AddMessage("Size: " + str(points.getSize()))
+                    arcpy.AddMessage("Height: " + str(points.getHeight()))
+                    points.addNode(previousStream.lastPoint, previousStream)                  
+        """
+        previousStream = currentStream
+
+    arcpy.AddMessage(str(points.getSize()))
     return intersections
 
 

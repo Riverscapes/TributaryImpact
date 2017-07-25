@@ -2,8 +2,10 @@ class PointNode:
     def __init__(self, value, stream=None):
         self.value = value
         self.stream = stream
+        self.balanceFactor = 0
         self.left = None
         self.right = None
+        self.parent = None
 
     def __lt__(self, other):
         if isinstance(other, PointNode):
@@ -37,7 +39,7 @@ class PointNode:
         else:
             return NotImplemented
 
-
+"""Currently not AVL, I'd like to add that in the future"""
 class AVLPointsTree:
     def __init__(self):
         self.root = None
@@ -47,18 +49,24 @@ class AVLPointsTree:
         if self.root is None:
             self.root = newNode
         else:
-            if self.root < newNode:
-                self.addNodeRecursive(newNode, self.root.right)
-            else:
-                self.addNodeRecursive(newNode, self.root.left)
+            self.addNodeRecursive(newNode, self.root)
 
     def addNodeRecursive(self, givenNode, currentNode):
-        if currentNode is None:
-            currentNode = givenNode
-        elif currentNode < givenNode:
-            self.addNodeRecursive(givenNode, currentNode.right)
+        if currentNode < givenNode:
+            if currentNode.right is not None:
+                self.addNodeRecursive(givenNode, currentNode.right)
+            else:
+                currentNode.right = givenNode
+                givenNode.parent = currentNode
+                self.updateBalance(currentNode.right)
         else:
-            self.addNodeRecursive(givenNode, currentNode.left)
+            if currentNode.left is not None:
+                self.addNodeRecursive(givenNode, currentNode.left)
+            else:
+                currentNode.left = givenNode
+                givenNode.parent = currentNode
+                self.updateBalance(currentNode.left)
+
 
     def findPoint(self, givenValue):
         newNode = PointNode(givenValue)
@@ -70,6 +78,36 @@ class AVLPointsTree:
         elif currentNode == givenNode:
             return currentNode
         elif currentNode > givenNode:
-            return self.treeContains(givenNode, currentNode.left)
+            return self.findPointRecursive(givenNode, currentNode.left)
         else:
-            return self.treeContains(givenNode, currentNode.right)
+            return self.findPointRecursive(givenNode, currentNode.right)
+
+
+    def getSize(self):
+        if self.root is None:
+            return 0
+        return self.getSizeRecursive(self.root.left) + self.getSizeRecursive(self.root.right) + 1
+
+    def getSizeRecursive(self, givenNode):
+        if givenNode is None:
+            return 0
+        else:
+            return self.getSizeRecursive(givenNode.left) + self.getSizeRecursive(givenNode.right) + 1
+
+
+    def getHeight(self):
+        if self.root is None:
+            return 0
+        else:
+            return max(self.getHeightRecursive(self.root.left), self.getHeightRecursive(self.root.right)) + 1
+
+    def getHeightRecursive(self, currentNode):
+        if currentNode is None:
+            return 0
+        else:
+            return max(self.getHeightRecursive(currentNode.left), self.getHeightRecursive(currentNode.right)) + 1
+
+
+    def updateBalance(self, givenNode):
+        return 0
+
