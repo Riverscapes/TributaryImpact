@@ -3,3 +3,7 @@ class Intersection(object):
         self.point = point
         self.streamOne = streamOne
         self.streamTwo = streamTwo
+        self.impact = -1
+
+    def setImpact(self, givenImpact):
+        self.impact = givenImpact

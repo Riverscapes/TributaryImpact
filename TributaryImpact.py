@@ -1,6 +1,7 @@
 import arcpy, os
 from Intersection import Intersection
 from AVLPointsTree import AVLPointsTree
+from math import sqrt, e, log
 
 def main(streamNetwork,
          dem,
@@ -39,71 +40,171 @@ def main(streamNetwork,
     cellSizeY = arcpy.GetRasterProperties_management(flowAccumulation, "CELLSIZEY")
     cellSize = float(cellSizeX.getOutput(0)) * float(cellSizeY.getOutput(0))
 
-    intersectionArray = findIntersections(clippedStreamNetwork, tempData)
+    numReaches = int(arcpy.GetCount_management(clippedStreamNetwork).getOutput(0))
 
-    calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData)
+    intersectionArray = findIntersections(clippedStreamNetwork, numReaches)
+
+    calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReaches, tempData)
 
     writeOutput(intersectionArray, outputDataPath, outputName, spatialReference)
 
 
-def findIntersections(streamNetwork, tempData):
+def findIntersections(streamNetwork, numReaches):
     arcpy.AddMessage("Finding intersections...")
-    numReaches = int(arcpy.GetCount_management(streamNetwork).getOutput(0))
     numReachesString = str(numReaches)
     arcpy.AddMessage("Reaches in network: " + numReachesString)
 
     intersections = []
     points = AVLPointsTree()
+    reqReachLength = 50
 
     polylineCursor = arcpy.da.SearchCursor(streamNetwork, ["SHAPE@"])
-    row = polylineCursor.next()
-    previousStream = row[0]
-    for i in range(numReaches - 1):
+    j = 0
+    previousStream = None
+    for i in range(numReaches):
         """If the current stream has a point that """
-        arcpy.AddMessage("Evaluating Reach: " + str(i))
+        #arcpy.AddMessage("Evaluating Reach: " + str(i))
         row = polylineCursor.next()
         currentStream = row[0]
-        arcpy.AddMessage("Point: " + str(previousStream.lastPoint.X) + " " + str(previousStream.lastPoint.Y))
-        pointInTree = points.findPoint(previousStream.lastPoint)
+        pointInTree = points.findPoint(currentStream.lastPoint)
         if pointInTree is not None:
-            intersections.append(Intersection(previousStream.lastPoint, previousStream, pointInTree.stream))
+            j += 1
+            arcpy.AddMessage("Total Intersections: " + str(j))
+            if currentStream.length < reqReachLength and previousStream.lastPoint.equals(currentStream.firstPoint):
+                intersections.append(Intersection(currentStream.lastPoint, previousStream, pointInTree.stream))
+            else:
+                intersections.append(Intersection(currentStream.lastPoint, currentStream, pointInTree.stream))
         else:
-            arcpy.AddMessage("Size: " + str(points.getSize()))
-            arcpy.AddMessage("Height: " + str(points.getHeight()))
-            points.addNode(previousStream.lastPoint, previousStream)
+            if currentStream.length < reqReachLength and previousStream.lastPoint.equals(currentStream.firstPoint):
+                points.addNode(currentStream.lastPoint, previousStream)
+            else:
+                points.addNode(currentStream.lastPoint, currentStream)
 
-        """
-        if not currentStream.firstPoint.equals(previousStream.firstPoint) and not currentStream.firstPoint.equals(previousStream.lastPoint):
-            if not currentStream.lastPoint.equals(previousStream.firstPoint) and not currentStream.lastPoint.equals(previousStream.lastPoint):
-                arcpy.AddMessage("Point: " + str(previousStream.lastPoint.X) + " " + str(previousStream.lastPoint.Y))
-                pointInTree = points.findPoint(previousStream.lastPoint)
-                if pointInTree is not None:
-                    intersections.append(Intersection(previousStream.lastPoint, previousStream, pointInTree.stream))
-                else:
-                    arcpy.AddMessage("Size: " + str(points.getSize()))
-                    arcpy.AddMessage("Height: " + str(points.getHeight()))
-                    points.addNode(previousStream.lastPoint, previousStream)                  
-        """
         previousStream = currentStream
+    del row, polylineCursor
 
     arcpy.AddMessage(str(points.getSize()))
     return intersections
 
 
-def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData):
-    #TODO: Write calculateImpact()
+def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReaches, tempData):
+    arcpy.AddMessage("Calculating Impact Probability...")
     i = 0
+    for intersection in intersectionArray:
+        i += 1
+        arcpy.AddMessage("Calculating intersection " + str(i) + " out of " + str(numReaches) +
+                         " (" + str(float(i) / float(numReaches)) + "% done)")
+        streamOneDrainageArea = findFlowAccumulation(intersection.streamOne, flowAccumulation, cellSize, tempData)
+        streamTwoDrainageArea = findFlowAccumulation(intersection.streamTwo, flowAccumulation, cellSize, tempData)
+
+        if streamOneDrainageArea > streamTwoDrainageArea:
+            mainstem = intersection.streamOne
+            mainstemDrainageArea = streamOneDrainageArea
+            tributary = intersection.streamTwo
+            tributaryDrainageArea = streamTwoDrainageArea
+        else:
+            tributary = intersection.streamOne
+            tributaryDrainageArea = streamOneDrainageArea
+            mainstem = intersection.streamTwo
+            mainstemDrainageArea = streamTwoDrainageArea
+
+        tributarySlope = findSlope(tributary, dem, tempData)
+
+        tributaryDrainageArea = abs(tributaryDrainageArea)
+        tributarySlope = abs(tributarySlope)
+        mainstemDrainageArea = abs(mainstemDrainageArea)
+
+
+        varAr = tributaryDrainageArea / mainstemDrainageArea
+        varPsiT = tributaryDrainageArea * tributarySlope
+
+        if tributaryDrainageArea < 0 or mainstemDrainageArea < 0 or tributarySlope < 0 or varAr < 0 or varPsiT < 0:
+            f = open('errorlog' + str(i) + '.txt', 'w')
+            f.write("Tributary Drainage Area: " + str(tributaryDrainageArea) + "\n")
+            f.write("Tributary Slope: " + str(tributarySlope) + "\n")
+            f.write("Mainstem Drainage Area: " + str(mainstemDrainageArea) + "\n")
+            f.write("Var Ar: " + str(varAr) + "\n")
+            f.write("varPsiT: " + str(varPsiT) + "\n")
+            f.close()
+
+        abs(varAr)
+        abs(varPsiT)
+
+        eToPower = e**(8.68 + 6.08*log(varAr) + 10.04*log(varPsiT))
+        intersection.setImpact(eToPower / (eToPower + 1))
+
+    i = 0
+
+
+def findFlowAccumulation(stream, flowAccumulation, cellSize, tempData):
+    """Because our stream network doesn't line up perfectly with our flow accumulation map, we need to create a
+         buffer and search in that buffer for the max flow accumulation using Zonal Statistics"""
+    #sr = arcpy.Describe(stream).spatialReference
+    arcpy.env.workspace = tempData
+    arcpy.CreateFeatureclass_management(tempData, "point.shp", "POINT", "", "DISABLED", "DISABLED")
+    cursor = arcpy.da.InsertCursor(tempData+"\point.shp", ["SHAPE@"])
+    cursor.insertRow([stream.firstPoint])
+    del cursor
+    arcpy.Buffer_analysis(tempData + "\point.shp", tempData + "\pointBuffer.shp", "20 Meters")
+    arcpy.PolygonToRaster_conversion(tempData + "\pointBuffer.shp", "FID", tempData + "\pointBufferRaster.tif")
+    maxFlow = arcpy.sa.ZonalStatistics(tempData + "\pointBufferRaster.tif", "Value", flowAccumulation, "MAXIMUM")
+    arcpy.sa.ExtractValuesToPoints(tempData + "\point.shp", maxFlow, tempData + "\\flowPoint")
+
+    searchCursor = arcpy.da.SearchCursor(tempData + "\\flowPoint.shp", "RASTERVALU")
+    row = searchCursor.next()
+    flowAccAtPoint = row[0]
+    del row
+    del searchCursor
+    flowAccAtPoint *= cellSize  # gives us the total area of flow accumulation, rather than just the number of cells
+    flowAccAtPoint /= 1000000  # converts from square meters to square kilometers
+    if flowAccAtPoint < 0:
+        flowAccAtPoint = 0
+
+    return flowAccAtPoint
+
+
+def findSlope(stream, dem, tempData):
+    elevationOne = findElevationAtPoint(dem, stream.firstPoint, tempData)
+    elevationTwo = findElevationAtPoint(dem, stream.lastPoint, tempData)
+    return abs(elevationOne - elevationTwo) / stream.length
+
+
+def findElevationAtPoint(dem, point, tempData):
+    """Finds the elevation at a certain point based on a DEM"""
+    """
+    I can't find a good way to just pull the data straight from the raster, so instead, we're having to
+    create the point in a layer of its own, then create another layer that has the elevation using the Extract Value
+    to Points tool, then using a search cursor to get the elevation data. It's a mess, and it's inefficient, but it
+    works. If anyone can find a better way, email me at banderson1618@gmail.com
+    """
+    sr = arcpy.Describe(dem).spatialReference
+    arcpy.env.workspace = tempData
+    arcpy.CreateFeatureclass_management(tempData, "point.shp", "POINT", "", "DISABLED", "DISABLED", sr)
+    cursor = arcpy.da.InsertCursor(tempData + "\point.shp", ["SHAPE@"])
+    cursor.insertRow([point])
+    del cursor
+    pointLayer = tempData + "\pointElevation"
+    arcpy.sa.ExtractValuesToPoints(tempData + "\point.shp", dem, pointLayer)
+    searchCursor = arcpy.da.SearchCursor(pointLayer + ".shp", "RASTERVALU")
+    row = searchCursor.next()
+    elevation = row[0]
+    del searchCursor
+    del row
+
+    return elevation
 
 
 def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference):
     arcpy.env.workspace = outputDataPath
 
     outputShape = arcpy.CreateFeatureclass_management(outputDataPath, outputName+ ".shp", "POINT", "", "DISABLED", "DISABLED", spatialReference)
+    arcpy.AddField_management(outputShape, "ImpactProb", "DOUBLE")
 
-    insertCursor = arcpy.da.InsertCursor(outputShape, ["SHAPE@"])
+    insertCursor = arcpy.da.InsertCursor(outputShape, ["SHAPE@", "ImpactProb"])
     for intersection in intersectionArray:
-        insertCursor.insertRow([intersection.point])
+        insertCursor.insertRow([intersection.point, intersection.impact])
     del insertCursor
+
 
     tempLayer = outputDataPath + "\\" +  outputName+ "_lyr"
     outputLayer = outputDataPath + "\\" +  outputName+ ".lyr"
