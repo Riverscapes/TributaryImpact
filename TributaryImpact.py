@@ -63,13 +63,11 @@ def findIntersections(streamNetwork, numReaches):
     previousStream = None
     for i in range(numReaches):
         """If the current stream has a point that """
-        #arcpy.AddMessage("Evaluating Reach: " + str(i))
+        arcpy.AddMessage("Finding intersections...")
         row = polylineCursor.next()
         currentStream = row[0]
         pointInTree = points.findPoint(currentStream.lastPoint)
         if pointInTree is not None:
-            j += 1
-            arcpy.AddMessage("Total Intersections: " + str(j))
             if currentStream.length < reqReachLength and previousStream.lastPoint.equals(currentStream.firstPoint):
                 intersections.append(Intersection(currentStream.lastPoint, previousStream, pointInTree.stream))
             else:
@@ -93,7 +91,7 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReach
     for intersection in intersectionArray:
         i += 1
         arcpy.AddMessage("Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)) +
-                         " (" + str(float(i) / float(len(intersectionArray))) + "% done)")
+                         " (" + str(float(i) / float(len(intersectionArray)) * 100) + "% done)")
         streamOneDrainageArea = findFlowAccumulation(intersection.streamOne, flowAccumulation, cellSize, tempData)
         streamTwoDrainageArea = findFlowAccumulation(intersection.streamTwo, flowAccumulation, cellSize, tempData)
 
