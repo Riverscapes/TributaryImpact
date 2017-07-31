@@ -110,25 +110,23 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReach
 
         tributarySlope = findSlope(tributary, dem, tempData)
 
-        tributaryDrainageArea = abs(tributaryDrainageArea)
-        tributarySlope = abs(tributarySlope)
-        mainstemDrainageArea = abs(mainstemDrainageArea)
-
-
         varAr = tributaryDrainageArea / mainstemDrainageArea
         varPsiT = tributaryDrainageArea * tributarySlope
 
-        if tributaryDrainageArea < 0 or mainstemDrainageArea < 0 or tributarySlope < 0 or varAr < 0 or varPsiT < 0:
-            f = open('errorlog' + str(i) + '.txt', 'w')
-            f.write("Tributary Drainage Area: " + str(tributaryDrainageArea) + "\n")
-            f.write("Tributary Slope: " + str(tributarySlope) + "\n")
-            f.write("Mainstem Drainage Area: " + str(mainstemDrainageArea) + "\n")
-            f.write("Var Ar: " + str(varAr) + "\n")
-            f.write("varPsiT: " + str(varPsiT) + "\n")
-            f.close()
+        f = open(tempData + 'errorlog' + str(i) + '.txt', 'w')
+        f.write("Tributary Drainage Area: " + str(tributaryDrainageArea) + "\n")
+        f.write("Tributary Slope: " + str(tributarySlope) + "\n")
+        f.write("Mainstem Drainage Area: " + str(mainstemDrainageArea) + "\n")
+        f.write("Var Ar: " + str(varAr) + "\n")
+        f.write("varPsiT: " + str(varPsiT) + "\n")
+        f.close()
 
-        abs(varAr)
-        abs(varPsiT)
+        varAr = abs(varAr)
+        varPsiT = abs(varPsiT)
+        if varAr == 0:
+            varAr = 0.0001
+        if varPsiT == 0:
+            varPsiT = 0.0001
 
         eToPower = e**(8.68 + 6.08*log(varAr) + 10.04*log(varPsiT))
         intersection.setImpact(eToPower / (eToPower + 1))
