@@ -92,8 +92,8 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReach
     i = 0
     for intersection in intersectionArray:
         i += 1
-        arcpy.AddMessage("Calculating intersection " + str(i) + " out of " + str(numReaches) +
-                         " (" + str(float(i) / float(numReaches)) + "% done)")
+        arcpy.AddMessage("Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)) +
+                         " (" + str(float(i) / float(len(intersectionArray))) + "% done)")
         streamOneDrainageArea = findFlowAccumulation(intersection.streamOne, flowAccumulation, cellSize, tempData)
         streamTwoDrainageArea = findFlowAccumulation(intersection.streamTwo, flowAccumulation, cellSize, tempData)
 
@@ -112,14 +112,6 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReach
 
         varAr = tributaryDrainageArea / mainstemDrainageArea
         varPsiT = tributaryDrainageArea * tributarySlope
-
-        f = open(tempData + 'errorlog' + str(i) + '.txt', 'w')
-        f.write("Tributary Drainage Area: " + str(tributaryDrainageArea) + "\n")
-        f.write("Tributary Slope: " + str(tributarySlope) + "\n")
-        f.write("Mainstem Drainage Area: " + str(mainstemDrainageArea) + "\n")
-        f.write("Var Ar: " + str(varAr) + "\n")
-        f.write("varPsiT: " + str(varPsiT) + "\n")
-        f.close()
 
         varAr = abs(varAr)
         varPsiT = abs(varPsiT)
