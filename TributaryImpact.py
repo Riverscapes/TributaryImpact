@@ -51,32 +51,42 @@ def main(streamNetwork,
 
 def findIntersections(streamNetwork, numReaches):
     arcpy.AddMessage("Finding intersections...")
-    numReachesString = str(numReaches)
-    arcpy.AddMessage("Reaches in network: " + numReachesString)
 
     intersections = []
     points = AVLPointsTree()
-    reqReachLength = 50
+    reqReachLength = 100
 
     polylineCursor = arcpy.da.SearchCursor(streamNetwork, ["SHAPE@"])
-    j = 0
-    previousStream = None
-    for i in range(numReaches):
+
+    row = polylineCursor.next()
+    currentStream = row[0]
+    if currentStream.length > reqReachLength:
+        points.addNode(currentStream.lastPoint, currentStream)
+
+    previousStream = currentStream
+
+
+    for i in range(numReaches - 1):
         """If the current stream has a point that """
-        arcpy.AddMessage("Finding intersections...")
         row = polylineCursor.next()
         currentStream = row[0]
         pointInTree = points.findPoint(currentStream.lastPoint)
+        x1 = float(currentStream.firstPoint.X)
+        x2 = float(previousStream.lastPoint.X)
+        y1 = float(currentStream.firstPoint.Y)
+        y2 = float(previousStream.lastPoint.Y)
+        buf = .01
+        continuousStreams = ((x1 - buf) < x2 < (x1 + buf)) and ((y1 - buf) < y2 < (y1 + buf))
         if pointInTree is not None:
-            if currentStream.length < reqReachLength and previousStream.lastPoint.equals(currentStream.firstPoint):
-                intersections.append(Intersection(currentStream.lastPoint, previousStream, pointInTree.stream))
-            else:
+            if currentStream.length > reqReachLength:
                 intersections.append(Intersection(currentStream.lastPoint, currentStream, pointInTree.stream))
+            elif continuousStreams:
+                intersections.append(Intersection(currentStream.lastPoint, previousStream, pointInTree.stream))
         else:
-            if currentStream.length < reqReachLength and previousStream.lastPoint.equals(currentStream.firstPoint):
-                points.addNode(currentStream.lastPoint, previousStream)
-            else:
+            if currentStream.length > reqReachLength:
                 points.addNode(currentStream.lastPoint, currentStream)
+            elif continuousStreams:
+                points.addNode(currentStream.lastPoint, previousStream)
 
         previousStream = currentStream
     del row, polylineCursor
