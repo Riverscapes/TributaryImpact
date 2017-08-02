@@ -44,7 +44,7 @@ def main(streamNetwork,
 
     intersectionArray = findIntersections(clippedStreamNetwork, numReaches)
 
-    calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReaches, tempData)
+    calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReaches, tempData, outputDataPath)
 
     writeOutput(intersectionArray, outputDataPath, outputName, spatialReference)
 
@@ -95,9 +95,10 @@ def findIntersections(streamNetwork, numReaches):
     return intersections
 
 
-def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReaches, tempData):
+def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReaches, tempData, outputData):
     arcpy.AddMessage("Calculating Impact Probability...")
     i = 0
+    txtFile = open(outputData + "\\textOutput.txt", 'w')
     for intersection in intersectionArray:
         i += 1
         arcpy.AddMessage("Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)) +
@@ -129,7 +130,16 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReach
             varPsiT = 0.0001
 
         eToPower = e**(8.68 + 6.08*log(varAr) + 10.04*log(varPsiT))
-        intersection.setImpact(eToPower / (eToPower + 1))
+        impact = eToPower / (eToPower + 1)
+        intersection.setImpact(impact)
+
+        txtFile.write("Reach " + str(i) + ":\n")
+        txtFile.write("Tributary Drainage Area: " + str(tributaryDrainageArea))
+        txtFile.write("\nMainstem Drainage Area: " + str(mainstemDrainageArea))
+        txtFile.write("\nTributary Slope: " + str(tributarySlope))
+        txtFile.write("\nvarAr: " + str(varAr))
+        txtFile.write("\nvarPsiT: " + str(varPsiT))
+        txtFile.write("\nImpact: " + str(impact) + "\n\n")
 
     i = 0
 
