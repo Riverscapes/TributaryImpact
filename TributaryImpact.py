@@ -143,6 +143,7 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReach
         txtFile.write("\nvarPsiT: " + str(varPsiT))
         txtFile.write("\nImpact: " + str(impact) + "\n\n")
 
+    txtFile.close()
     i = 0
 
 
@@ -222,25 +223,3 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference)
     outputLayer = outputDataPath + "\\" +  outputName+ ".lyr"
     arcpy.MakeFeatureLayer_management(outputShape, tempLayer)
     arcpy.SaveToLayerFile_management(tempLayer, outputLayer)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
