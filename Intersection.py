@@ -4,6 +4,8 @@ class Intersection(object):
         self.streamOne = streamOne
         self.streamTwo = streamTwo
         self.impact = -1
+        self.tribDrainArea = -1
+        self.mainDrainArea = -1
 
     def setImpact(self, givenImpact):
         self.impact = givenImpact

@@ -132,6 +132,8 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReach
         eToPower = e**(8.68 + 6.08*log(varAr) + 10.04*log(varPsiT))
         impact = eToPower / (eToPower + 1)
         intersection.setImpact(impact)
+        intersection.mainDrainArea = mainstemDrainageArea
+        intersection.tribDrainArea = tributaryDrainageArea
 
         txtFile.write("Reach " + str(i) + ":\n")
         txtFile.write("Tributary Drainage Area: " + str(tributaryDrainageArea))
@@ -208,9 +210,11 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference)
     outputShape = arcpy.CreateFeatureclass_management(outputDataPath, outputName+ ".shp", "POINT", "", "DISABLED", "DISABLED", spatialReference)
     arcpy.AddField_management(outputShape, "ImpactProb", "DOUBLE")
 
+    drainageAreaThreshold = .01
     insertCursor = arcpy.da.InsertCursor(outputShape, ["SHAPE@", "ImpactProb"])
     for intersection in intersectionArray:
-        insertCursor.insertRow([intersection.point, intersection.impact])
+        if intersection.tribDrainArea / intersection.mainDrainArea > drainageAreaThreshold:
+            insertCursor.insertRow([intersection.point, intersection.impact])
     del insertCursor
 
 
