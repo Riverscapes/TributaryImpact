@@ -46,7 +46,7 @@ def main(streamNetwork,
 
     calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReaches, tempData, outputDataPath)
 
-    writeOutput(intersectionArray, outputDataPath, outputName, spatialReference)
+    writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, clippedStreamNetwork)
 
 
 def findIntersections(streamNetwork, numReaches):
@@ -54,7 +54,7 @@ def findIntersections(streamNetwork, numReaches):
 
     intersections = []
     points = AVLPointsTree()
-    reqReachLength = 100
+    reqReachLength = 50
 
     polylineCursor = arcpy.da.SearchCursor(streamNetwork, ["SHAPE@"])
 
@@ -65,28 +65,22 @@ def findIntersections(streamNetwork, numReaches):
 
     previousStream = currentStream
 
-
     for i in range(numReaches - 1):
         """If the current stream has a point that """
         row = polylineCursor.next()
         currentStream = row[0]
         pointInTree = points.findPoint(currentStream.lastPoint)
-        x1 = float(currentStream.firstPoint.X)
-        x2 = float(previousStream.lastPoint.X)
-        y1 = float(currentStream.firstPoint.Y)
-        y2 = float(previousStream.lastPoint.Y)
-        buf = .01
-        continuousStreams = ((x1 - buf) < x2 < (x1 + buf)) and ((y1 - buf) < y2 < (y1 + buf))
+        continuousStreams = pointsAreEqual(previousStream.lastPoint, currentStream.firstPoint, .01)
         if pointInTree is not None:
-            if currentStream.length > reqReachLength:
-                intersections.append(Intersection(currentStream.lastPoint, currentStream, pointInTree.stream))
-            elif continuousStreams:
+            if currentStream.length < reqReachLength and continuousStreams:
                 intersections.append(Intersection(currentStream.lastPoint, previousStream, pointInTree.stream))
+            else:
+                intersections.append(Intersection(currentStream.lastPoint, currentStream, pointInTree.stream))
         else:
-            if currentStream.length > reqReachLength:
-                points.addNode(currentStream.lastPoint, currentStream)
-            elif continuousStreams:
+            if currentStream.length < reqReachLength and continuousStreams:
                 points.addNode(currentStream.lastPoint, previousStream)
+            else:
+                points.addNode(currentStream.lastPoint, currentStream)
 
         previousStream = currentStream
     del row, polylineCursor
@@ -205,7 +199,7 @@ def findElevationAtPoint(dem, point, tempData):
     return elevation
 
 
-def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference):
+def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, streamNetwork):
     arcpy.env.workspace = outputDataPath
 
     outputShape = arcpy.CreateFeatureclass_management(outputDataPath, outputName+ ".shp", "POINT", "", "DISABLED", "DISABLED", spatialReference)
@@ -218,8 +212,57 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference)
             insertCursor.insertRow([intersection.point, intersection.impact])
     del insertCursor
 
-
     tempLayer = outputDataPath + "\\" +  outputName+ "_lyr"
     outputLayer = outputDataPath + "\\" +  outputName+ ".lyr"
     arcpy.MakeFeatureLayer_management(outputShape, tempLayer)
     arcpy.SaveToLayerFile_management(tempLayer, outputLayer)
+
+    arcpy.AddField_management(streamNetwork, "UStreamIP", "DOUBLE")
+    arcpy.AddField_management(streamNetwork, "DStreamIP", "DOUBLE")
+
+    """Sets all values to -1, so that we can overwrite them later"""
+    rows = arcpy.da.UpdateCursor(streamNetwork, ["UStreamIP", "DStreamIP"])
+    for row in rows:
+        row[0] = -1
+        row[1] = -1
+    del row
+    del rows
+
+    rows = arcpy.da.UpdateCursor(streamNetwork, ["SHAPE@", "UStreamIP", "DStreamIP"])
+
+    for row in rows:
+        currentStream = row[0]
+        for intersection in intersectionArray:
+            if pointsAreEqual(currentStream.firstPoint, intersection.point, .01):
+                row[1] = intersection.impact
+                rows.updateRow(row)
+            if pointsAreEqual(currentStream.lastPoint, intersection.point, .01):
+                row[2] = intersection.impact
+                rows.updateRow(row)
+    del row
+    del rows
+
+
+def pointsAreEqual(pointOne, pointTwo, buf):
+    x1 = float(pointOne.X)
+    x2 = float(pointTwo.X)
+    y1 = float(pointOne.Y)
+    y2 = float(pointTwo.Y)
+    return (x1 - buf) < x2 < (x1 + buf) and (y1 - buf) < y2 < (y1 + buf)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
