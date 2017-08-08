@@ -61,15 +61,7 @@ class TributaryImpactTool(object):
            direction = "Input",
            multiValue = False)
 
-       param5 = arcpy.Parameter(
-           displayName = "Testing",
-           name = "Testing",
-           datatype = "GPBoolean",
-           parameterType = "Optional",
-           direction = "Input",
-           multiValue = False)
-
-       params = [param0, param1, param2, param3, param4, param5]
+       params = [param0, param1, param2, param3, param4]
        return params
 
    def isLicensed(self):
@@ -93,8 +85,7 @@ class TributaryImpactTool(object):
            parameters[1].valueAsText,
            parameters[2].valueAsText,
            parameters[3].valueAsText,
-           parameters[4].valueAsText,
-           parameters[5].valueAsText)
+           parameters[4].valueAsText)
 
        return
 

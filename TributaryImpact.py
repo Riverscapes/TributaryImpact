@@ -7,8 +7,7 @@ def main(streamNetwork,
          dem,
          clippingRegion,
          outputFolder,
-         outputName,
-         testing):
+         outputName):
     arcpy.env.overwriteOutput = True
     arcpy.CheckOutExtension("Spatial")
 
@@ -46,7 +45,7 @@ def main(streamNetwork,
 
     calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReaches, tempData, outputDataPath)
 
-    writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, clippedStreamNetwork)
+    writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, streamNetwork)
 
 
 def findIntersections(streamNetwork, numReaches):
@@ -225,6 +224,7 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
     for row in rows:
         row[0] = -1
         row[1] = -1
+        rows.updateRow(row)
     del row
     del rows
 
