@@ -22,12 +22,9 @@ def main(streamNetwork,
     outputDataPath = outputFolder+"\TributaryImpactPoints"
 
     """Clips our stream network to a clipping region, if necessary"""
-    if clippingRegion is not None:
-        clippedStreamNetwork = tempData + "\clippedStreamNetwork.shp"
-        arcpy.AddMessage("Clipping stream network...")
-        arcpy.Clip_analysis(streamNetwork, clippingRegion, clippedStreamNetwork)
-    else:
-        clippedStreamNetwork = streamNetwork
+    clippedStreamNetwork = outputDataPath + "\\" + outputName + "StrmNtWrk.shp"
+    arcpy.AddMessage("Clipping stream network...")
+    arcpy.Clip_analysis(streamNetwork, clippingRegion, clippedStreamNetwork)
 
     spatialReference = arcpy.Describe(streamNetwork).spatialReference
 
@@ -45,9 +42,9 @@ def main(streamNetwork,
 
     calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReaches, tempData, outputDataPath)
 
-    writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, streamNetwork)
+    writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, clippedStreamNetwork)
 
-
+"""Goes through the stream network and finds the intersections in the stream network"""
 def findIntersections(streamNetwork, numReaches):
     arcpy.AddMessage("Finding intersections...")
 
@@ -87,7 +84,7 @@ def findIntersections(streamNetwork, numReaches):
     arcpy.AddMessage(str(points.getSize()))
     return intersections
 
-
+"""Takes the streams and the point and uses them to calculate the impact of the tributary on the mainstem"""
 def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReaches, tempData, outputData):
     arcpy.AddMessage("Calculating Impact Probability...")
     i = 0
@@ -139,11 +136,10 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReach
     txtFile.close()
     i = 0
 
-
+"""Finds flow accumulation at a certain point"""
 def findFlowAccumulation(stream, flowAccumulation, cellSize, tempData):
     """Because our stream network doesn't line up perfectly with our flow accumulation map, we need to create a
          buffer and search in that buffer for the max flow accumulation using Zonal Statistics"""
-    #sr = arcpy.Describe(stream).spatialReference
     arcpy.env.workspace = tempData
     arcpy.CreateFeatureclass_management(tempData, "point.shp", "POINT", "", "DISABLED", "DISABLED")
     cursor = arcpy.da.InsertCursor(tempData+"\point.shp", ["SHAPE@"])
@@ -166,7 +162,7 @@ def findFlowAccumulation(stream, flowAccumulation, cellSize, tempData):
 
     return flowAccAtPoint
 
-
+"""Gets the elevation at two points, then returns the slope between those two points"""
 def findSlope(stream, dem, tempData):
     elevationOne = findElevationAtPoint(dem, stream.firstPoint, tempData)
     elevationTwo = findElevationAtPoint(dem, stream.lastPoint, tempData)
@@ -197,7 +193,7 @@ def findElevationAtPoint(dem, point, tempData):
 
     return elevation
 
-
+"""Writes output, and also writes the intersection data onto the clipped network"""
 def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, streamNetwork):
     arcpy.env.workspace = outputDataPath
 
@@ -218,15 +214,6 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
 
     arcpy.AddField_management(streamNetwork, "UStreamIP", "DOUBLE")
     arcpy.AddField_management(streamNetwork, "DStreamIP", "DOUBLE")
-
-    """Sets all values to -1, so that we can overwrite them later"""
-    rows = arcpy.da.UpdateCursor(streamNetwork, ["UStreamIP", "DStreamIP"])
-    for row in rows:
-        row[0] = -1
-        row[1] = -1
-        rows.updateRow(row)
-    del row
-    del rows
 
     rows = arcpy.da.UpdateCursor(streamNetwork, ["SHAPE@", "UStreamIP", "DStreamIP"])
 

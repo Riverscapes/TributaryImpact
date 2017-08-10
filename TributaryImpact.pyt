@@ -41,7 +41,7 @@ class TributaryImpactTool(object):
            displayName = "Clipping Region",
            name = "Clipping Region",
            datatype = "DEFeatureClass",
-           parameterType = "Optional",
+           parameterType = "Required",
            direction = "Input",
            multiValue = False)
 
