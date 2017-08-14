@@ -2,10 +2,24 @@ class PointNode:
     def __init__(self, value, stream=None):
         self.value = value
         self.stream = stream
-        self.balanceFactor = 0
         self.left = None
         self.right = None
         self.parent = None
+
+    def isRoot(self):
+        return self.parent == None
+
+    def isLeftChild(self):
+        if self.parent == None:
+            return False
+        else:
+            return self.parent.left == self
+
+    def isRightChild(self):
+        if self.parent == None:
+            return False
+        else:
+            return self.parent.right == self
 
     def __lt__(self, other):
         if isinstance(other, PointNode):
@@ -58,14 +72,14 @@ class AVLPointsTree:
             else:
                 currentNode.right = givenNode
                 givenNode.parent = currentNode
-                self.updateBalance(currentNode.right)
+                self.updateBalance(givenNode)
         else:
             if currentNode.left is not None:
                 self.addNodeRecursive(givenNode, currentNode.left)
             else:
                 currentNode.left = givenNode
                 givenNode.parent = currentNode
-                self.updateBalance(currentNode.left)
+                self.updateBalance(givenNode)
 
 
     def findPoint(self, givenValue):
@@ -109,5 +123,61 @@ class AVLPointsTree:
 
 
     def updateBalance(self, givenNode):
-        return 0
+        rightHeight = self.getHeightRecursive(givenNode.right)
+        leftHeight = self.getHeightRecursive(givenNode.left)
+        if abs(rightHeight - leftHeight) > 1:
+            self.rebalance(givenNode, rightHeight, leftHeight)
+        if givenNode.parent != None:
+            self.updateBalance(givenNode.parent)
+
+
+    def rebalance(self, givenNode, rightHeight, leftHeight):
+        if rightHeight > leftHeight:
+            if self.getHeightRecursive(givenNode.right.left) > self.getHeightRecursive(givenNode.right.right):
+                self.rotateRight(givenNode.right)
+                self.rotateLeft(givenNode)
+            else:
+                self.rotateLeft(givenNode)
+        else:
+            if self.getHeightRecursive(givenNode.left.right) > self.getHeightRecursive(givenNode.left.left):
+                self.rotateLeft(givenNode.left)
+                self.rotateRight(givenNode)
+            else:
+                self.rotateRight(givenNode)
+
+
+    def rotateRight(self, rotateRoot):
+        newRoot = rotateRoot.left
+        parent = rotateRoot.parent
+        if parent == None:
+            self.root = newRoot
+        elif parent.left == rotateRoot:
+            parent.left = newRoot
+        else:
+            parent.right = newRoot
+
+        rotateRoot.left = newRoot.right
+        if rotateRoot.left != None:
+            rotateRoot.left.parent = rotateRoot
+        newRoot.right = rotateRoot
+        rotateRoot.parent = newRoot
+        newRoot.parent = parent
+
+
+    def rotateLeft(self, rotateRoot):
+        newRoot = rotateRoot.right
+        parent = rotateRoot.parent
+        if parent == None:
+            self.root = newRoot
+        elif parent.left == rotateRoot:
+            parent.left = newRoot
+        else:
+            parent.right = newRoot
+
+        rotateRoot.right = newRoot.left
+        if rotateRoot.right != None:
+            rotateRoot.right.parent = rotateRoot
+        newRoot.left = rotateRoot
+        rotateRoot.parent = newRoot
+        newRoot.parent = parent
 

@@ -2,11 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="33a3cd12-f2dc-47bf-81b6-d535b4ba9436" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/DAStreamOrderParser.py" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/AVLPointsTree.py" afterPath="$PROJECT_DIR$/AVLPointsTree.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/TributaryImpact.py" afterPath="$PROJECT_DIR$/TributaryImpact.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/TributaryImpact.pyt" afterPath="$PROJECT_DIR$/TributaryImpact.pyt" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/TributaryImpact.pyt.xml" afterPath="$PROJECT_DIR$/TributaryImpact.pyt.xml" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -21,18 +19,18 @@
       <file leaf-file-name="TributaryImpact.pyt" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/TributaryImpact.pyt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="106">
+            <state relative-caret-position="578">
               <caret line="34" column="39" lean-forward="false" selection-start-line="34" selection-start-column="39" selection-end-line="34" selection-end-column="39" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TributaryImpact.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="TributaryImpact.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/TributaryImpact.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="85">
-              <caret line="5" column="23" lean-forward="true" selection-start-line="5" selection-start-column="23" selection-end-line="5" selection-end-column="23" />
+            <state relative-caret-position="561">
+              <caret line="75" column="75" lean-forward="true" selection-start-line="75" selection-start-column="75" selection-end-line="75" selection-end-column="75" />
               <folding>
                 <element signature="e#0#16#0" expanded="true" />
               </folding>
@@ -50,11 +48,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="AVLPointsTree.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="AVLPointsTree.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/AVLPointsTree.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="68">
-              <caret line="4" column="26" lean-forward="false" selection-start-line="4" selection-start-column="26" selection-end-line="4" selection-end-column="26" />
+            <state relative-caret-position="539">
+              <caret line="159" column="35" lean-forward="true" selection-start-line="159" selection-start-column="35" selection-end-line="159" selection-end-column="35" />
               <folding />
             </state>
           </provider>
@@ -72,6 +70,8 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>order</find>
+      <find>balanceF</find>
+      <find>fact</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -83,9 +83,9 @@
         <option value="$PROJECT_DIR$/AVLTree.py" />
         <option value="$PROJECT_DIR$/DAStreamOrderParser.py" />
         <option value="$PROJECT_DIR$/Intersection.py" />
-        <option value="$PROJECT_DIR$/AVLPointsTree.py" />
         <option value="$PROJECT_DIR$/TributaryImpact.pyt" />
         <option value="$PROJECT_DIR$/TributaryImpact.py" />
+        <option value="$PROJECT_DIR$/AVLPointsTree.py" />
       </list>
     </option>
   </component>
@@ -328,14 +328,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/DAStreamOrderParser.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="17" column="0" lean-forward="true" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/DAStreamOrderParser.py" />
     <entry file="file://$PROJECT_DIR$/Intersection.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
@@ -676,14 +669,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/AVLPointsTree.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="4" column="26" lean-forward="false" selection-start-line="4" selection-start-column="26" selection-end-line="4" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Intersection.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="170">
@@ -692,17 +677,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/DAStreamOrderParser.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="289">
-          <caret line="17" column="0" lean-forward="false" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/DAStreamOrderParser.py" />
     <entry file="file://$PROJECT_DIR$/TributaryImpact.pyt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="106">
+        <state relative-caret-position="578">
           <caret line="34" column="39" lean-forward="false" selection-start-line="34" selection-start-column="39" selection-end-line="34" selection-end-column="39" />
           <folding />
         </state>
@@ -710,11 +688,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/TributaryImpact.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="5" column="23" lean-forward="true" selection-start-line="5" selection-start-column="23" selection-end-line="5" selection-end-column="23" />
+        <state relative-caret-position="561">
+          <caret line="75" column="75" lean-forward="true" selection-start-line="75" selection-start-column="75" selection-end-line="75" selection-end-column="75" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/AVLPointsTree.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="539">
+          <caret line="159" column="35" lean-forward="true" selection-start-line="159" selection-start-column="35" selection-end-line="159" selection-end-column="35" />
+          <folding />
         </state>
       </provider>
     </entry>
