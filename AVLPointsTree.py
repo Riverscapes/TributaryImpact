@@ -1,4 +1,4 @@
-class PointNode:
+class StreamImpactPointNode:
     def __init__(self, value, stream=None):
         self.value = value
         self.stream = stream
@@ -6,41 +6,29 @@ class PointNode:
         self.right = None
         self.parent = None
 
-    def isRoot(self):
-        return self.parent == None
-
-    def isLeftChild(self):
-        if self.parent == None:
-            return False
-        else:
-            return self.parent.left == self
-
-    def isRightChild(self):
-        if self.parent == None:
-            return False
-        else:
-            return self.parent.right == self
-
+    """The next three functions will allow us to compare nodes to each other for effective sorting"""
     def __lt__(self, other):
-        if isinstance(other, PointNode):
-            if float(self.value.X) == float(other.value.X):
+        if isinstance(other, StreamImpactPointNode):
+            if (float(self.value.X) - .01) < float(other.value.X) < (float(self.value.X) + .01):
                 return float(self.value.Y) < float(other.value.Y)
             else:
                 return float(self.value.X) < float(other.value.X)
         else:
             return NotImplemented
 
+
     def __gt__(self, other):
-        if isinstance(other, PointNode):
-            if float(self.value.X) == float(other.value.X):
+        if isinstance(other, StreamImpactPointNode):
+            if (float(self.value.X) - .01) < float(other.value.X) < (float(self.value.X) + .01):
                 return float(self.value.Y) > float(other.value.Y)
             else:
                 return float(self.value.X) > float(other.value.X)
         else:
             return NotImplemented
 
+
     def __eq__(self, other): #includes buffer region
-        if isinstance(other, PointNode):
+        if isinstance(other, StreamImpactPointNode):
             x1 = float(self.value.X)
             x2 = float(other.value.X)
             y1 = float(self.value.Y)
@@ -53,17 +41,19 @@ class PointNode:
         else:
             return NotImplemented
 
-"""Currently not AVL, I'd like to add that in the future"""
+"""Contains points that are nice and easy to access"""
 class AVLPointsTree:
     def __init__(self):
         self.root = None
 
+    """Feeds our node to the recursive function, unless we don't have a root yet"""
     def addNode(self, givenPoint, givenStream):
-        newNode = PointNode(givenPoint, givenStream)
+        newNode = StreamImpactPointNode(givenPoint, givenStream)
         if self.root is None:
             self.root = newNode
         else:
             self.addNodeRecursive(newNode, self.root)
+
 
     def addNodeRecursive(self, givenNode, currentNode):
         if currentNode < givenNode:
@@ -83,8 +73,9 @@ class AVLPointsTree:
 
 
     def findPoint(self, givenValue):
-        newNode = PointNode(givenValue)
+        newNode = StreamImpactPointNode(givenValue)
         return self.findPointRecursive(newNode, self.root)
+
 
     def findPointRecursive(self, givenNode, currentNode):
         if currentNode is None:
@@ -101,6 +92,7 @@ class AVLPointsTree:
         if self.root is None:
             return 0
         return self.getSizeRecursive(self.root.left) + self.getSizeRecursive(self.root.right) + 1
+
 
     def getSizeRecursive(self, givenNode):
         if givenNode is None:

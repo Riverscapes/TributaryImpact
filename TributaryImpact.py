@@ -68,7 +68,7 @@ def findIntersections(streamNetwork, numReaches):
         pointInTree = points.findPoint(currentStream.lastPoint)
         continuousStreams = pointsAreEqual(previousStream.lastPoint, currentStream.firstPoint, .01)
         if pointInTree is not None:
-            if currentStream.length < reqReachLength and continuousStreams:
+            if currentStream.length < reqReachLength and continuousStreams: # If the stream is really short, we want to use the stream before it if possible, to get a better DA value
                 intersections.append(Intersection(currentStream.lastPoint, previousStream, pointInTree.stream))
             else:
                 intersections.append(Intersection(currentStream.lastPoint, currentStream, pointInTree.stream))
@@ -77,11 +77,10 @@ def findIntersections(streamNetwork, numReaches):
                 points.addNode(currentStream.lastPoint, previousStream)
             else:
                 points.addNode(currentStream.lastPoint, currentStream)
-        arcpy.AddMessage("Height: " + str(points.getHeight()))
-        arcpy.AddMessage("Size: " + str(points.getSize()))
 
         previousStream = currentStream
     del row, polylineCursor
+    arcpy.AddMessage("Final Size: " + str(points.getSize()))
     arcpy.AddMessage("Final Height: " + str(points.getHeight()))
 
     arcpy.AddMessage(str(points.getSize()))
@@ -94,7 +93,8 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReach
     txtFile = open(outputData + "\\textOutput.txt", 'w')
     for intersection in intersectionArray:
         i += 1
-        arcpy.AddMessage("Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)) +
+        if i % 10 == 0:
+            arcpy.AddMessage("Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)) +
                          " (" + str(float(i) / float(len(intersectionArray)) * 100) + "% done)")
         streamOneDrainageArea = findFlowAccumulation(intersection.streamOne, flowAccumulation, cellSize, tempData)
         streamTwoDrainageArea = findFlowAccumulation(intersection.streamTwo, flowAccumulation, cellSize, tempData)
@@ -146,7 +146,7 @@ def findFlowAccumulation(stream, flowAccumulation, cellSize, tempData):
     arcpy.env.workspace = tempData
     arcpy.CreateFeatureclass_management(tempData, "point.shp", "POINT", "", "DISABLED", "DISABLED")
     cursor = arcpy.da.InsertCursor(tempData+"\point.shp", ["SHAPE@"])
-    cursor.insertRow([stream.firstPoint])
+    cursor.insertRow([stream.firstPoint]) # We use the first point so that we have a better chance of getting distinct values for DA
     del cursor
     arcpy.Buffer_analysis(tempData + "\point.shp", tempData + "\pointBuffer.shp", "20 Meters")
     arcpy.PolygonToRaster_conversion(tempData + "\pointBuffer.shp", "FID", tempData + "\pointBufferRaster.tif")
@@ -219,7 +219,7 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
     arcpy.AddField_management(streamNetwork, "DStreamIP", "DOUBLE")
 
     rows = arcpy.da.UpdateCursor(streamNetwork, ["SHAPE@", "UStreamIP", "DStreamIP"])
-
+    arcpy.AddMessage("Adding output to clipped stream network...")
     for row in rows:
         currentStream = row[0]
         for intersection in intersectionArray:
@@ -239,20 +239,4 @@ def pointsAreEqual(pointOne, pointTwo, buf):
     y1 = float(pointOne.Y)
     y2 = float(pointTwo.Y)
     return (x1 - buf) < x2 < (x1 + buf) and (y1 - buf) < y2 < (y1 + buf)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
