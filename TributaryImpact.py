@@ -25,6 +25,10 @@ def main(streamNetwork,
     clippedStreamNetwork = outputDataPath + "\\" + outputName + "StrmNtWrk.shp"
     arcpy.AddMessage("Clipping stream network...")
     arcpy.Clip_analysis(streamNetwork, clippingRegion, clippedStreamNetwork)
+    streamSR = arcpy.Describe(streamNetwork).spatialReference
+    demSR = arcpy.Describe(dem).spatialReference
+    if streamSR != demSR:
+        arcpy.AddError("DEM AND STREAM NETWORK USE DIFFERENT PROJECTIONS")
 
     spatialReference = arcpy.Describe(streamNetwork).spatialReference
 
@@ -40,7 +44,7 @@ def main(streamNetwork,
 
     intersectionArray = findIntersections(clippedStreamNetwork, numReaches)
 
-    calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReaches, tempData, outputDataPath)
+    calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData, outputDataPath)
 
     writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, clippedStreamNetwork)
 
@@ -80,14 +84,14 @@ def findIntersections(streamNetwork, numReaches):
 
         previousStream = currentStream
     del row, polylineCursor
+    arcpy.AddMessage("Intersections calculated")
     arcpy.AddMessage("Final Size: " + str(points.getSize()))
     arcpy.AddMessage("Final Height: " + str(points.getHeight()))
 
-    arcpy.AddMessage(str(points.getSize()))
     return intersections
 
 """Takes the streams and the point and uses them to calculate the impact of the tributary on the mainstem"""
-def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReaches, tempData, outputData):
+def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData, outputData):
     arcpy.AddMessage("Calculating Impact Probability...")
     i = 0
     txtFile = open(outputData + "\\textOutput.txt", 'w')
@@ -112,7 +116,11 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, numReach
 
         tributarySlope = findSlope(tributary, dem, tempData)
 
-        varAr = tributaryDrainageArea / mainstemDrainageArea
+        if mainstemDrainageArea < 1.0:
+            varAr = 0
+            mainstemDrainageArea = 0.0001
+        else:
+            varAr = tributaryDrainageArea / mainstemDrainageArea
         varPsiT = tributaryDrainageArea * tributarySlope
 
         varAr = abs(varAr)
@@ -220,7 +228,12 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
 
     rows = arcpy.da.UpdateCursor(streamNetwork, ["SHAPE@", "UStreamIP", "DStreamIP"])
     arcpy.AddMessage("Adding output to clipped stream network...")
+    sizeRows = arcpy.GetCount_management(streamNetwork)
+    i = 0
     for row in rows:
+        if i % 100 == 0:
+            arcpy.AddMessage("Calculating row " + str(i) + " out of " + str(sizeRows))
+        i += 1
         currentStream = row[0]
         for intersection in intersectionArray:
             if pointsAreEqual(currentStream.firstPoint, intersection.point, .01):
