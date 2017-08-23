@@ -217,12 +217,12 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
         if intersection.tribDrainArea / intersection.mainDrainArea > drainageAreaThreshold:
             insertCursor.insertRow([intersection.point, intersection.impact])
     del insertCursor
-
+    """
     tempLayer = outputDataPath + "\\" +  outputName+ "_lyr"
     outputLayer = outputDataPath + "\\" +  outputName+ ".lyr"
     arcpy.MakeFeatureLayer_management(outputShape, tempLayer)
     arcpy.SaveToLayerFile_management(tempLayer, outputLayer)
-
+    """
     arcpy.AddField_management(streamNetwork, "UStreamIP", "DOUBLE")
     arcpy.AddField_management(streamNetwork, "DStreamIP", "DOUBLE")
 
