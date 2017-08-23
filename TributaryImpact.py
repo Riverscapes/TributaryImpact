@@ -27,7 +27,7 @@ def main(streamNetwork,
     arcpy.Clip_analysis(streamNetwork, clippingRegion, clippedStreamNetwork)
     streamSR = arcpy.Describe(streamNetwork).spatialReference
     demSR = arcpy.Describe(dem).spatialReference
-    if streamSR != demSR:
+    if streamSR.PCSName != demSR.PCSName:
         arcpy.AddError("DEM AND STREAM NETWORK USE DIFFERENT PROJECTIONS")
 
     spatialReference = arcpy.Describe(streamNetwork).spatialReference
@@ -208,7 +208,7 @@ def findElevationAtPoint(dem, point, tempData):
 def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, streamNetwork):
     arcpy.env.workspace = outputDataPath
 
-    outputShape = arcpy.CreateFeatureclass_management(outputDataPath, outputName+ ".shp", "POINT", "", "DISABLED", "DISABLED", spatialReference)
+    outputShape = arcpy.CreateFeatureclass_management(outputDataPath, outputName + "Points.shp", "POINT", "", "DISABLED", "DISABLED", spatialReference)
     arcpy.AddField_management(outputShape, "ImpactProb", "DOUBLE")
 
     drainageAreaThreshold = .01
