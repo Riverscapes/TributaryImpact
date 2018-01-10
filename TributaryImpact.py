@@ -1,4 +1,5 @@
-import arcpy, os
+import arcpy
+import os
 from Intersection import Intersection
 from AVLPointsTree import AVLPointsTree
 from math import sqrt, e, log
@@ -22,9 +23,13 @@ def main(streamNetwork,
     outputDataPath = outputFolder+"\TributaryImpactPoints"
 
     """Clips our stream network to a clipping region, if necessary"""
-    clippedStreamNetwork = outputDataPath + "\\" + outputName + "StrmNtWrk.shp"
-    arcpy.AddMessage("Clipping stream network...")
-    arcpy.Clip_analysis(streamNetwork, clippingRegion, clippedStreamNetwork)
+    if clippingRegion:
+        clippedStreamNetwork = outputDataPath + "\\" + outputName + "StrmNtWrk.shp"
+        arcpy.AddMessage("Clipping stream network...")
+        arcpy.Clip_analysis(streamNetwork, clippingRegion, clippedStreamNetwork)
+    else:
+        clippedStreamNetwork = streamNetwork
+
     streamSR = arcpy.Describe(streamNetwork).spatialReference
     demSR = arcpy.Describe(dem).spatialReference
     if streamSR.PCSName != demSR.PCSName:
@@ -73,12 +78,12 @@ def findIntersections(streamNetwork, numReaches):
         continuousStreams = pointsAreEqual(previousStream.lastPoint, currentStream.firstPoint, .01)
         if pointInTree is not None:
             if currentStream.length < reqReachLength and continuousStreams: # If the stream is really short, we want to use the stream before it if possible, to get a better DA value
-                intersections.append(Intersection(currentStream.lastPoint, previousStream, pointInTree.stream))
+                intersections.append(Intersection(currentStream.lastPoint, currentStream, pointInTree.stream))
             else:
                 intersections.append(Intersection(currentStream.lastPoint, currentStream, pointInTree.stream))
         else:
             if currentStream.length < reqReachLength and continuousStreams:
-                points.addNode(currentStream.lastPoint, previousStream)
+                points.addNode(currentStream.lastPoint, currentStream)
             else:
                 points.addNode(currentStream.lastPoint, currentStream)
 
