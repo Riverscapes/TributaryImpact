@@ -100,6 +100,9 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData
     arcpy.AddMessage("Calculating Impact Probability...")
     i = 0
     txtFile = open(outputData + "\\textOutput.txt", 'w')
+
+    arcpy.SetProgressor("step", "Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)), 0,
+                        len(intersectionArray), 1)
     for intersection in intersectionArray:
         i += 1
         if i % 10 == 0:
@@ -140,6 +143,9 @@ def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData
         intersection.setImpact(impact)
         intersection.mainDrainArea = mainstemDrainageArea
         intersection.tribDrainArea = tributaryDrainageArea
+
+        arcpy.SetProgressorLabel("Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)))
+        arcpy.SetProgressorPosition()
 
         txtFile.write("Reach " + str(i) + ":\n")
         txtFile.write("Tributary Drainage Area: " + str(tributaryDrainageArea))
