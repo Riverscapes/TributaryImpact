@@ -96,67 +96,61 @@ def findIntersections(streamNetwork, numReaches):
     return intersections
 
 """Takes the streams and the point and uses them to calculate the impact of the tributary on the mainstem"""
-def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData, outputData):
+def calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData):
     arcpy.AddMessage("Calculating Impact Probability...")
     i = 0
-    txtFile = open(outputData + "\\textOutput.txt", 'w')
 
     arcpy.SetProgressor("step", "Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)), 0,
                         len(intersectionArray), 1)
     for intersection in intersectionArray:
         i += 1
-        if i % 10 == 0:
-            arcpy.AddMessage("Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)) +
-                         " (" + str(float(i) / float(len(intersectionArray)) * 100) + "% done)")
-        streamOneDrainageArea = findFlowAccumulation(intersection.streamOne, flowAccumulation, cellSize, tempData)
-        streamTwoDrainageArea = findFlowAccumulation(intersection.streamTwo, flowAccumulation, cellSize, tempData)
+        try:
+            streamOneDrainageArea = findFlowAccumulation(intersection.streamOne, flowAccumulation, cellSize, tempData)
+            streamTwoDrainageArea = findFlowAccumulation(intersection.streamTwo, flowAccumulation, cellSize, tempData)
+            if streamOneDrainageArea < 0 or streamTwoDrainageArea < 0:
+                raise ValueError("Could not properly find drainage area")
 
-        if streamOneDrainageArea > streamTwoDrainageArea:
-            mainstem = intersection.streamOne
-            mainstemDrainageArea = streamOneDrainageArea
-            tributary = intersection.streamTwo
-            tributaryDrainageArea = streamTwoDrainageArea
-        else:
-            tributary = intersection.streamOne
-            tributaryDrainageArea = streamOneDrainageArea
-            mainstem = intersection.streamTwo
-            mainstemDrainageArea = streamTwoDrainageArea
+            if streamOneDrainageArea > streamTwoDrainageArea:
+                mainstem = intersection.streamOne
+                mainstemDrainageArea = streamOneDrainageArea
+                tributary = intersection.streamTwo
+                tributaryDrainageArea = streamTwoDrainageArea
+            else:
+                tributary = intersection.streamOne
+                tributaryDrainageArea = streamOneDrainageArea
+                mainstem = intersection.streamTwo
+                mainstemDrainageArea = streamTwoDrainageArea
 
-        tributarySlope = findSlope(tributary, dem, tempData)
+            tributarySlope = findSlope(tributary, dem, tempData)
+            if tributarySlope == -9999:
+                raise ValueError("Could not properly find slope")
 
-        if mainstemDrainageArea < 1.0:
-            varAr = 0
-            mainstemDrainageArea = 0.0001
-        else:
-            varAr = tributaryDrainageArea / mainstemDrainageArea
-        varPsiT = tributaryDrainageArea * tributarySlope
+            if mainstemDrainageArea < 1.0:
+                varAr = 0
+                mainstemDrainageArea = 0.0001
+            else:
+                varAr = tributaryDrainageArea / mainstemDrainageArea
+            varPsiT = tributaryDrainageArea * tributarySlope
 
-        varAr = abs(varAr)
-        varPsiT = abs(varPsiT)
-        if varAr == 0:
-            varAr = 0.0001
-        if varPsiT == 0:
-            varPsiT = 0.0001
+            varAr = abs(varAr)
+            varPsiT = abs(varPsiT)
+            if varAr == 0:
+                varAr = 0.0001
+            if varPsiT == 0:
+                varPsiT = 0.0001
 
-        eToPower = e**(8.68 + 6.08*log(varAr) + 10.04*log(varPsiT))
-        impact = eToPower / (eToPower + 1)
-        intersection.setImpact(impact)
-        intersection.mainDrainArea = mainstemDrainageArea
-        intersection.tribDrainArea = tributaryDrainageArea
+            eToPower = e**(8.68 + 6.08*log(varAr) + 10.04*log(varPsiT))
+            impact = eToPower / (eToPower + 1)
+            intersection.setImpact(impact)
+            intersection.mainDrainArea = mainstemDrainageArea
+            intersection.tribDrainArea = tributaryDrainageArea
 
-        arcpy.SetProgressorLabel("Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)))
-        arcpy.SetProgressorPosition()
+            arcpy.SetProgressorLabel("Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)))
+            arcpy.SetProgressorPosition()
 
-        txtFile.write("Reach " + str(i) + ":\n")
-        txtFile.write("Tributary Drainage Area: " + str(tributaryDrainageArea))
-        txtFile.write("\nMainstem Drainage Area: " + str(mainstemDrainageArea))
-        txtFile.write("\nTributary Slope: " + str(tributarySlope))
-        txtFile.write("\nvarAr: " + str(varAr))
-        txtFile.write("\nvarPsiT: " + str(varPsiT))
-        txtFile.write("\nImpact: " + str(impact) + "\n\n")
+        except ValueError as error:
+            arcpy.AddWarning(str(error))
 
-    txtFile.close()
-    i = 0
 
 """Finds flow accumulation at a certain point"""
 def findFlowAccumulation(stream, flowAccumulation, cellSize, tempData):
@@ -167,10 +161,15 @@ def findFlowAccumulation(stream, flowAccumulation, cellSize, tempData):
     cursor = arcpy.da.InsertCursor(tempData+"\point.shp", ["SHAPE@"])
     cursor.insertRow([stream.firstPoint]) # We use the first point so that we have a better chance of getting distinct values for DA
     del cursor
-    arcpy.Buffer_analysis(tempData + "\point.shp", tempData + "\pointBuffer.shp", "20 Meters")
-    arcpy.PolygonToRaster_conversion(tempData + "\pointBuffer.shp", "FID", tempData + "\pointBufferRaster.tif")
-    maxFlow = arcpy.sa.ZonalStatistics(tempData + "\pointBufferRaster.tif", "Value", flowAccumulation, "MAXIMUM")
-    arcpy.sa.ExtractValuesToPoints(tempData + "\point.shp", maxFlow, tempData + "\\flowPoint")
+
+    try:
+        arcpy.Buffer_analysis(tempData + "\point.shp", tempData + "\pointBuffer.shp", "20 Meters")
+        arcpy.PolygonToRaster_conversion(tempData + "\pointBuffer.shp", "FID", tempData + "\pointBufferRaster.tif")
+        maxFlow = arcpy.sa.ZonalStatistics(tempData + "\pointBufferRaster.tif", "Value", flowAccumulation, "MAXIMUM")
+        arcpy.sa.ExtractValuesToPoints(tempData + "\point.shp", maxFlow, tempData + "\\flowPoint")
+    except:
+        return -9999
+
 
     searchCursor = arcpy.da.SearchCursor(tempData + "\\flowPoint.shp", "RASTERVALU")
     row = searchCursor.next()
@@ -186,9 +185,12 @@ def findFlowAccumulation(stream, flowAccumulation, cellSize, tempData):
 
 """Gets the elevation at two points, then returns the slope between those two points"""
 def findSlope(stream, dem, tempData):
-    elevationOne = findElevationAtPoint(dem, stream.firstPoint, tempData)
-    elevationTwo = findElevationAtPoint(dem, stream.lastPoint, tempData)
-    return abs(elevationOne - elevationTwo) / stream.length
+    try:
+        elevationOne = findElevationAtPoint(dem, stream.firstPoint, tempData)
+        elevationTwo = findElevationAtPoint(dem, stream.lastPoint, tempData)
+        return abs(elevationOne - elevationTwo) / stream.length
+    except:
+        return -9999
 
 
 def findElevationAtPoint(dem, point, tempData):
