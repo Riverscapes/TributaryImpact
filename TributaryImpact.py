@@ -49,7 +49,7 @@ def main(streamNetwork,
 
     intersectionArray = findIntersections(clippedStreamNetwork, numReaches)
 
-    calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData, outputDataPath)
+    calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData)
 
     writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, clippedStreamNetwork)
 
