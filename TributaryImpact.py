@@ -241,11 +241,13 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
 
     rows = arcpy.da.UpdateCursor(streamNetwork, ["SHAPE@", "UStreamIP", "DStreamIP"])
     arcpy.AddMessage("Adding output to clipped stream network...")
-    sizeRows = arcpy.GetCount_management(streamNetwork)
     i = 0
+    arcpy.SetProgressor("step", "Adding intersection impact to row  " + str(i) + " out of " +
+                        str(len(intersectionArray)), 0, len(intersectionArray), 1)
     for row in rows:
-        if i % 100 == 0:
-            arcpy.AddMessage("Calculating row " + str(i) + " out of " + str(sizeRows))
+        i += 1
+        arcpy.SetProgressorLabel("Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)))
+        arcpy.SetProgressorPosition()
         i += 1
         currentStream = row[0]
         for intersection in intersectionArray:
