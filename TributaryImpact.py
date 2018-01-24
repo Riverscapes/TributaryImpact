@@ -246,7 +246,7 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
                         str(len(intersectionArray)), 0, len(intersectionArray), 1)
     for row in rows:
         i += 1
-        arcpy.SetProgressorLabel("Calculating intersection " + str(i) + " out of " + str(len(intersectionArray)))
+        arcpy.SetProgressorLabel("Calculating intersection " + str(i) + " out of " + str(len(rows)))
         arcpy.SetProgressorPosition()
         i += 1
         currentStream = row[0]
