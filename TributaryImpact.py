@@ -2,10 +2,11 @@ import arcpy
 import os
 from Intersection import Intersection
 from AVLPointsTree import AVLPointsTree
-from math import sqrt, e, log
+from math import e, log
 
 def main(streamNetwork,
          dem,
+         flowAccumulation,
          clippingRegion,
          outputFolder,
          outputName):
@@ -37,10 +38,13 @@ def main(streamNetwork,
 
     spatialReference = arcpy.Describe(streamNetwork).spatialReference
 
-    arcpy.AddMessage("Calculating Flow Accumulation...")
-    filledDEM = arcpy.sa.Fill(dem)
-    flowDirection = arcpy.sa.FlowDirection(filledDEM)
-    flowAccumulation = arcpy.sa.FlowAccumulation(flowDirection)  # Calculates the flow accumulation to use in findWidth()
+    """Calculates our flow accumulation, if necessary"""
+    if flowAccumulation is None:
+        arcpy.AddMessage("Calculating Flow Accumulation...")
+        filledDEM = arcpy.sa.Fill(dem)
+        flowDirection = arcpy.sa.FlowDirection(filledDEM)
+        flowAccumulation = arcpy.sa.FlowAccumulation(flowDirection)  # Calculates the flow accumulation to use in findWidth()
+
     cellSizeX = arcpy.GetRasterProperties_management(flowAccumulation, "CELLSIZEX")
     cellSizeY = arcpy.GetRasterProperties_management(flowAccumulation, "CELLSIZEY")
     cellSize = float(cellSizeX.getOutput(0)) * float(cellSizeY.getOutput(0))
@@ -182,6 +186,7 @@ def findFlowAccumulation(stream, flowAccumulation, cellSize, tempData):
         flowAccAtPoint = 0
 
     return flowAccAtPoint
+
 
 """Gets the elevation at two points, then returns the slope between those two points"""
 def findSlope(stream, dem, tempData):

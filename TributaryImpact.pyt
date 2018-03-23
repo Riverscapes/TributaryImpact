@@ -38,6 +38,14 @@ class TributaryImpactTool(object):
            multiValue = False)
 
        param2 = arcpy.Parameter(
+           displayName = "Flow Accumulation",
+           name = "FlowAccumulation",
+           datatype = "DERasterDataset",
+           parameterType = "Optional",
+           direction = "Input",
+           multiValue = False)
+
+       param3 = arcpy.Parameter(
            displayName = "Clipping Region",
            name = "Clipping Region",
            datatype = "DEFeatureClass",
@@ -45,7 +53,7 @@ class TributaryImpactTool(object):
            direction = "Input",
            multiValue = False)
 
-       param3 = arcpy.Parameter(
+       param4 = arcpy.Parameter(
            displayName = "Output Files Folder",
            name = "Output Files",
            datatype = "DEFolder",
@@ -53,7 +61,7 @@ class TributaryImpactTool(object):
            direction = "Input",
            multiValue = False)
 
-       param4 = arcpy.Parameter(
+       param5 = arcpy.Parameter(
            displayName = "Output Name",
            name = "outputName",
            datatype = "GPString",
@@ -61,7 +69,7 @@ class TributaryImpactTool(object):
            direction = "Input",
            multiValue = False)
 
-       params = [param0, param1, param2, param3, param4]
+       params = [param0, param1, param2, param3, param4, param5]
        return params
 
    def isLicensed(self):
@@ -85,6 +93,7 @@ class TributaryImpactTool(object):
            parameters[1].valueAsText,
            parameters[2].valueAsText,
            parameters[3].valueAsText,
+           parameters[4].valueAsText,
            parameters[4].valueAsText)
 
        return
