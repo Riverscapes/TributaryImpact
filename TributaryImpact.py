@@ -94,8 +94,6 @@ def findIntersections(streamNetwork, numReaches):
         previousStream = currentStream
     del row, polylineCursor
     arcpy.AddMessage("Intersections calculated")
-    arcpy.AddMessage("Final Size: " + str(points.getSize()))
-    arcpy.AddMessage("Final Height: " + str(points.getHeight()))
 
     return intersections
 
