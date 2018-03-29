@@ -53,6 +53,8 @@ def main(streamNetwork,
 
     intersectionArray = findIntersections(clippedStreamNetwork, numReaches)
 
+    arcpy.AddMessage("Intersections to calculate: " + str(len(intersectionArray)))
+
     calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData)
 
     writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, clippedStreamNetwork)
@@ -93,7 +95,7 @@ def findIntersections(streamNetwork, numReaches):
 
         previousStream = currentStream
     del row, polylineCursor
-    arcpy.AddMessage("Intersections calculated")
+    arcpy.AddMessage("Intersections found")
 
     return intersections
 

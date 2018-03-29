@@ -94,7 +94,7 @@ class TributaryImpactTool(object):
            parameters[2].valueAsText,
            parameters[3].valueAsText,
            parameters[4].valueAsText,
-           parameters[4].valueAsText)
+           parameters[5].valueAsText)
 
        return
 
