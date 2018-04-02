@@ -247,6 +247,9 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
     rows = arcpy.da.UpdateCursor(streamNetwork, ["SHAPE@", "UStreamIP", "DStreamIP"])
     arcpy.AddMessage("Adding output to clipped stream network...")
 
+    i = 1
+    arcpy.SetProgressor("step", "Adding to row " + str(i) + " out of " + str(len(rows)), 0,
+                        len(rows), 1)
     for row in rows:
         currentStream = row[0]
         for intersection in intersectionArray:
@@ -256,6 +259,11 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
             if pointsAreEqual(currentStream.lastPoint, intersection.point, .01):
                 row[2] = intersection.impact
                 rows.updateRow(row)
+
+        i += 1
+        arcpy.SetProgressorLabel("Adding to row " + str(i) + " out of " + str(len(intersectionArray)))
+        arcpy.SetProgressorPosition()
+
     del row
     del rows
 
