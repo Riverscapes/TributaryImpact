@@ -234,7 +234,7 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
 
     arcpy.AddField_management(streamNetwork, "UStreamIP", "DOUBLE")
     arcpy.AddField_management(streamNetwork, "DStreamIP", "DOUBLE")
-    rows = arcpy.da.UpdateCursor(streamNetwork, ["SHAPE@", "UStreamIP", "DStreamIP"])
+    rows = arcpy.da.UpdateCursor(streamNetwork, ["SHAPE@", "DStreamIP", "UStreamIP"])
     arcpy.AddMessage("Adding output to clipped stream network...")
 
     numReaches = int(arcpy.GetCount_management(streamNetwork).getOutput(0))
