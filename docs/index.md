@@ -11,7 +11,7 @@ The tool requires a stream network shape file, a DEM, a folder to place the outp
 # Running the Tool
 #### Make sure all your inputs use the same projection
 If the inputs use different projections, the tool will give you an error.
-#### Do your best to keep the stream network over the DEM and Flow Accumulation map
+#### Keep the stream network over the DEM and Flow Accumulation map
 The program won't crash if there is one stream that slips off the DEM, but the program will waste time trying to find the impact chance of data that isn't there. If large sections of your stream network are off of your DEM or Flow Accumulation map, use a clipping region to make sure the tool focuses on streams that it can find a result for.
 
 # Outputs
