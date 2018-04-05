@@ -18,14 +18,9 @@ def main(streamNetwork,
         os.makedirs(outputFolder+"\\temporaryData")
     tempData = outputFolder + "\\temporaryData"
 
-    """Creates our output folder, where we'll put our final results"""
-    if not os.path.exists(outputFolder+"\TributaryImpactPoints"):
-        os.makedirs(outputFolder+"\TributaryImpactPoints")
-    outputDataPath = outputFolder+"\TributaryImpactPoints"
-
     """Clips our stream network to a clipping region, if necessary"""
     if clippingRegion:
-        clippedStreamNetwork = outputDataPath + "\\" + outputName + "StrmNtWrk.shp"
+        clippedStreamNetwork = tempData + "\\" + outputName + "StrmNtWrk.shp"
         arcpy.AddMessage("Clipping stream network...")
         arcpy.Clip_analysis(streamNetwork, clippingRegion, clippedStreamNetwork)
     else:
@@ -57,7 +52,9 @@ def main(streamNetwork,
 
     calculateImpact(intersectionArray, dem, flowAccumulation, cellSize, tempData)
 
-    writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, clippedStreamNetwork)
+    createProject(dem, streamNetwork, clippingRegion, outputFolder, clippedStreamNetwork, outputName, spatialReference,
+                  intersectionArray)
+
 
 """Goes through the stream network and finds the intersections in the stream network"""
 def findIntersections(streamNetwork, numReaches):
@@ -224,32 +221,28 @@ def findElevationAtPoint(dem, point, tempData):
 
 """Writes output, and also writes the intersection data onto the clipped network"""
 def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, streamNetwork):
-    arcpy.env.workspace = outputDataPath
+    pointFolder = makeFolder(outputDataPath, "01_Points")
+    arcpy.env.workspace = pointFolder
 
-    outputShape = arcpy.CreateFeatureclass_management(outputDataPath, outputName + "Points.shp", "POINT", "", "DISABLED", "DISABLED", spatialReference)
+    outputShape = arcpy.CreateFeatureclass_management(pointFolder, outputName + "Points.shp", "POINT", "", "DISABLED", "DISABLED", spatialReference)
     arcpy.AddField_management(outputShape, "ImpactProb", "DOUBLE")
 
-    drainageAreaThreshold = .01
     insertCursor = arcpy.da.InsertCursor(outputShape, ["SHAPE@", "ImpactProb"])
     for intersection in intersectionArray:
-        if intersection.tribDrainArea / intersection.mainDrainArea > drainageAreaThreshold:
-            insertCursor.insertRow([intersection.point, intersection.impact])
+        insertCursor.insertRow([intersection.point, intersection.impact])
     del insertCursor
-    """
-    tempLayer = outputDataPath + "\\" +  outputName+ "_lyr"
-    outputLayer = outputDataPath + "\\" +  outputName+ ".lyr"
-    arcpy.MakeFeatureLayer_management(outputShape, tempLayer)
-    arcpy.SaveToLayerFile_management(tempLayer, outputLayer)
-    """
+
     arcpy.AddField_management(streamNetwork, "UStreamIP", "DOUBLE")
     arcpy.AddField_management(streamNetwork, "DStreamIP", "DOUBLE")
-
     rows = arcpy.da.UpdateCursor(streamNetwork, ["SHAPE@", "UStreamIP", "DStreamIP"])
     arcpy.AddMessage("Adding output to clipped stream network...")
 
+    numReaches = int(arcpy.GetCount_management(streamNetwork).getOutput(0))
+    numReachesString = str(numReaches)
+
     i = 1
-    arcpy.SetProgressor("step", "Adding to row " + str(i) + " out of " + str(len(rows)), 0,
-                        len(rows), 1)
+    arcpy.SetProgressor("step", "Adding to row " + str(i) + " out of " + numReachesString, 0,
+                        numReaches, 1)
     for row in rows:
         currentStream = row[0]
         for intersection in intersectionArray:
@@ -261,11 +254,75 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
                 rows.updateRow(row)
 
         i += 1
-        arcpy.SetProgressorLabel("Adding to row " + str(i) + " out of " + str(len(intersectionArray)))
+        arcpy.SetProgressorLabel("Adding to row " + str(i) + " out of " + numReachesString)
         arcpy.SetProgressorPosition()
 
     del row
     del rows
+
+    streamFolder = makeFolder(outputDataPath, "02_StreamNetwork")
+    arcpy.Copy_management(streamNetwork, streamFolder + "/TribImpactStrmNtwrk.shp")
+
+
+def createProject(dem, streamNetwork, clippingRegion, outputFolder, clippedStreamNetwork, outputName, spatialReference,
+                  intersectionArray):
+    """
+    Copies everything over into a folder and writes the XML file for it
+    :param dem: The path to the DEM
+    :param streamNetwork: The path to the original stream network
+    :param clippingRegion: The path to the clipping region, if applicable
+    :param outputFolder: Where we want to put the project
+    :param clippedStreamNetwork: The result of the clipping
+    :param outputName: What we want to name our output
+    :param spatialReference: The spatial reference of the stream network
+    :param intersectionArray: The array of intersections that we have
+    :return: None
+    """
+    projectFolder = makeFolder(outputFolder, "TribImpactProject")
+
+    inputsFolder = makeFolder(projectFolder, "01_Inputs")
+    analysesFolder = makeFolder(projectFolder, "02_Analyses")
+
+    demFolder = makeFolder(inputsFolder, "01_DEM")
+    arcpy.Copy_management(dem, os.path.join(demFolder, os.path.join(os.path.basename(dem))))
+    streamNetworkFolder = makeFolder(inputsFolder, "02_StreamNetwork")
+    arcpy.Copy_management(streamNetwork, os.path.join(streamNetworkFolder, os.path.basename(streamNetwork)))
+    if clippingRegion:
+        clippingRegionFolder = makeFolder(inputsFolder, "03_ClippingRegionFolder")
+        arcpy.Copy_management(clippingRegion, os.path.join(clippingRegionFolder, os.path.basename(clippingRegion)))
+
+    outputFolder = getOutputFolder(analysesFolder)
+
+    writeOutput(intersectionArray, outputFolder, outputName, spatialReference, clippedStreamNetwork)
+
+
+def getOutputFolder(analysesFolder):
+    """
+    Gets us the first untaken Output folder number, makes it, and returns it
+    :param analysesFolder: Where we're looking for output folders
+    :return: String
+    """
+    i = 1
+    outputFolder = os.path.join(analysesFolder, "Output_" + str(i))
+    while os.path.exists(outputFolder):
+        i += 1
+        outputFolder = os.path.join(analysesFolder, "Output_" + str(i))
+
+    os.mkdir(outputFolder)
+    return outputFolder
+
+
+def makeFolder(pathToLocation, newFolderName):
+    """
+    Makes a folder and returns the path to it
+    :param pathToLocation: Where we want to put the folder
+    :param newFolderName: What the folder will be called
+    :return: String
+    """
+    newFolder = os.path.join(pathToLocation, newFolderName)
+    if not os.path.exists(newFolder):
+        os.mkdir(newFolder)
+    return newFolder
 
 
 def pointsAreEqual(pointOne, pointTwo, buf):
