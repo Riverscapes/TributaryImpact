@@ -65,7 +65,7 @@ class TributaryImpactTool(object):
            displayName = "Output Name",
            name = "outputName",
            datatype = "GPString",
-           parameterType = "Required",
+           parameterType = "Optional",
            direction = "Input",
            multiValue = False)
 

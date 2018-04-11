@@ -10,6 +10,8 @@ def main(streamNetwork,
          clippingRegion,
          outputFolder,
          outputName):
+    if outputName is None:
+        outputName = "TribImpact"
     arcpy.env.overwriteOutput = True
     arcpy.CheckOutExtension("Spatial")
 
