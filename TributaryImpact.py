@@ -282,9 +282,17 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
 
 def makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer):
     projectPath = os.path.dirname(os.path.dirname(outputDataPath))
-    pointSymbology = "C:\Users\A02150284\Documents\GISData\WashingtonWatersheds\Asotin\Symbology\TribImpactPoints.lyr"
-    upstreamSymbology = "C:\Users\A02150284\Documents\GISData\WashingtonWatersheds\Asotin\Symbology\TribImpactUpstream.lyr"
-    downstreamSymbology = "C:\Users\A02150284\Documents\GISData\WashingtonWatersheds\Asotin\Symbology\TribImpactDownstream.lyr"
+    tribCodeFolder = os.path.dirname(os.path.abspath(__file__))
+    symbologyFolder = os.path.join(tribCodeFolder, 'symbology')
+    pointSymbology = os.path.join(symbologyFolder, "TribImpactPoints.lyr")
+    upstreamSymbology = os.path.join(symbologyFolder, "TribImpactUpstream.lyr")
+    downstreamSymbology = os.path.join(symbologyFolder,"TribImpactDownstream.lyr")
+
+    arcpy.AddMessage("Trib Code Folder: " + tribCodeFolder)
+    arcpy.AddMessage("Symbology Folder: " + symbologyFolder)
+    arcpy.AddMessage("Point Symbology: " + pointSymbology)
+    arcpy.AddMessage("Upstream Symbology: " + upstreamSymbology)
+    arcpy.AddMessage("Downstream Symbology: " + downstreamSymbology)
 
     arcpy.ApplySymbologyFromLayer_management(pointLayer, pointSymbology)
     arcpy.SaveToLayerFile_management(pointLayer, pointLayer)
@@ -293,7 +301,8 @@ def makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer)
     arcpy.SaveToLayerFile_management(upstreamLayer, upstreamLayer)
 
     arcpy.ApplySymbologyFromLayer_management(downstreamLayer, downstreamSymbology)
-    arcpy.SaveToLayerFile_management(downstreamLayer, downstreamLayer)
+    arcpy.SaveToLayerFile_management(downstreamLayer, downstreamLayer)    
+
 
 
 
