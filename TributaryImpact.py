@@ -222,7 +222,6 @@ def findElevationAtPoint(dem, point, tempData):
 """Writes output, and also writes the intersection data onto the clipped network"""
 def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, streamNetwork):
     pointFolder = makeFolder(outputDataPath, "01_Points")
-    arcpy.env.workspace = pointFolder
 
     outputShape = arcpy.CreateFeatureclass_management(pointFolder, outputName + "Points.shp", "POINT", "", "DISABLED", "DISABLED", spatialReference)
     arcpy.AddField_management(outputShape, "ImpactProb", "DOUBLE")
@@ -231,6 +230,14 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
     for intersection in intersectionArray:
         insertCursor.insertRow([intersection.point, intersection.impact])
     del insertCursor
+
+    pointLayer = os.path.join(pointFolder, outputName+"Points.lyr")
+    arcpy.MakeFeatureLayer_management(outputShape, pointLayer)
+
+    streamFolder = makeFolder(outputDataPath, "02_StreamNetwork")
+    streamNetworkOutput = os.path.join(streamFolder, outputName + "StrmNtwrk.shp")
+    arcpy.Copy_management(streamNetwork, streamNetworkOutput)
+    streamNetwork = streamNetworkOutput
 
     arcpy.AddField_management(streamNetwork, "UStreamIP", "DOUBLE")
     arcpy.AddField_management(streamNetwork, "DStreamIP", "DOUBLE")
@@ -260,8 +267,35 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
     del row
     del rows
 
-    streamFolder = makeFolder(outputDataPath, "02_StreamNetwork")
-    arcpy.Copy_management(streamNetwork, streamFolder + "/TribImpactStrmNtwrk.shp")
+    fields = arcpy.ListFields(streamNetwork)
+    for field in fields:
+        if not field.required and field.name != "UStreamIP" and field.name != 'DStreamIP':
+            arcpy.DeleteField_management(streamNetwork, field.name)
+
+    upstreamLayer = os.path.join(streamFolder, outputName + "Upstream.lyr")
+    arcpy.MakeFeatureLayer_management(streamNetwork, upstreamLayer)
+    downstreamLayer = os.path.join(streamFolder, outputName + "Downstream.lyr")
+    arcpy.MakeFeatureLayer_management(streamNetwork, downstreamLayer)
+
+    makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer)
+
+
+def makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer):
+    projectPath = os.path.dirname(os.path.dirname(outputDataPath))
+    pointSymbology = "C:\Users\A02150284\Documents\GISData\WashingtonWatersheds\Asotin\Symbology\TribImpactPoints.lyr"
+    upstreamSymbology = "C:\Users\A02150284\Documents\GISData\WashingtonWatersheds\Asotin\Symbology\TribImpactUpstream.lyr"
+    downstreamSymbology = "C:\Users\A02150284\Documents\GISData\WashingtonWatersheds\Asotin\Symbology\TribImpactDownstream.lyr"
+
+    arcpy.ApplySymbologyFromLayer_management(pointLayer, pointSymbology)
+    arcpy.SaveToLayerFile_management(pointLayer, pointLayer)
+
+    arcpy.ApplySymbologyFromLayer_management(upstreamLayer, upstreamSymbology)
+    arcpy.SaveToLayerFile_management(upstreamLayer, upstreamLayer)
+
+    arcpy.ApplySymbologyFromLayer_management(downstreamLayer, downstreamSymbology)
+    arcpy.SaveToLayerFile_management(downstreamLayer, downstreamLayer)
+
+
 
 
 def createProject(dem, streamNetwork, clippingRegion, outputFolder, clippedStreamNetwork, outputName, spatialReference,
