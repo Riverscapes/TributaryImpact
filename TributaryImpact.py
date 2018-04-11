@@ -16,7 +16,7 @@ def main(streamNetwork,
     """Creates the temporary data folder, where we'll put all our intermediate results"""
     if not os.path.exists(outputFolder+"\\temporaryData"):
         os.makedirs(outputFolder+"\\temporaryData")
-    tempData = outputFolder + "\\temporaryData"
+    tempData = os.path.join(outputFolder, "temporaryData")
 
     """Clips our stream network to a clipping region, if necessary"""
     if clippingRegion:
@@ -219,8 +219,17 @@ def findElevationAtPoint(dem, point, tempData):
 
     return elevation
 
-"""Writes output, and also writes the intersection data onto the clipped network"""
+
 def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, streamNetwork):
+    """
+    Writes the output folder based on the intersection array
+    :param intersectionArray: The array of intersections
+    :param outputDataPath: Where we want to write our output
+    :param outputName: What we want to name our output
+    :param spatialReference: The spatial reference we want to apply to our stuff
+    :param streamNetwork: The stream network for the whole region
+    :return: None
+    """
     pointFolder = makeFolder(outputDataPath, "01_Points")
 
     outputShape = arcpy.CreateFeatureclass_management(pointFolder, outputName + "Points.shp", "POINT", "", "DISABLED", "DISABLED", spatialReference)
@@ -281,6 +290,15 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
 
 
 def makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer):
+    """
+    Applies symbology to layer files
+    :param outputDataPath: What output folder we're in
+    :param pointLayer: The layer points output
+    :param upstreamLayer: The layer of upstream impact probabilities
+    :param downstreamLayer: The layer of downstream impact probabilities
+    :return: None
+    """
+    #TODO Make a layer package?
     projectPath = os.path.dirname(os.path.dirname(outputDataPath))
     tribCodeFolder = os.path.dirname(os.path.abspath(__file__))
     symbologyFolder = os.path.join(tribCodeFolder, 'symbology')
