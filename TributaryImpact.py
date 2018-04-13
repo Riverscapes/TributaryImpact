@@ -222,7 +222,7 @@ def findElevationAtPoint(dem, point, tempData):
     return elevation
 
 
-def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, streamNetwork):
+def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference, streamNetwork, demLayer, streamNetworkOriginal):
     """
     Writes the output folder based on the intersection array
     :param intersectionArray: The array of intersections
@@ -230,6 +230,7 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
     :param outputName: What we want to name our output
     :param spatialReference: The spatial reference we want to apply to our stuff
     :param streamNetwork: The stream network for the whole region
+    :param demLayer: The layer with symbology in the project folder
     :return: None
     """
     pointFolder = makeFolder(outputDataPath, "01_Points")
@@ -288,16 +289,19 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
     downstreamLayer = os.path.join(streamFolder, outputName + "Downstream.lyr")
     arcpy.MakeFeatureLayer_management(streamNetwork, downstreamLayer)
 
-    makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer)
+    makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer, streamNetwork, demLayer, streamNetworkOriginal)
 
 
-def makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer):
+def makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer, streamNetwork, demLayer, streamNetworkOrig):
     """
     Applies symbology to layer files
     :param outputDataPath: What output folder we're in
     :param pointLayer: The layer points output
     :param upstreamLayer: The layer of upstream impact probabilities
     :param downstreamLayer: The layer of downstream impact probabilities
+    :param streamNetwork: The stream network in the project folder
+    :param demLayer: The DEM layer we made earlier
+    :param streamNetworkOrig: The stream network file in the inputs folder
     :return: None
     """
     #TODO Make a layer package?
@@ -308,12 +312,6 @@ def makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer)
     upstreamSymbology = os.path.join(symbologyFolder, "TribImpactUpstream.lyr")
     downstreamSymbology = os.path.join(symbologyFolder,"TribImpactDownstream.lyr")
 
-    arcpy.AddMessage("Trib Code Folder: " + tribCodeFolder)
-    arcpy.AddMessage("Symbology Folder: " + symbologyFolder)
-    arcpy.AddMessage("Point Symbology: " + pointSymbology)
-    arcpy.AddMessage("Upstream Symbology: " + upstreamSymbology)
-    arcpy.AddMessage("Downstream Symbology: " + downstreamSymbology)
-
     arcpy.ApplySymbologyFromLayer_management(pointLayer, pointSymbology)
     arcpy.SaveToLayerFile_management(pointLayer, pointLayer)
 
@@ -321,10 +319,18 @@ def makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer)
     arcpy.SaveToLayerFile_management(upstreamLayer, upstreamLayer)
 
     arcpy.ApplySymbologyFromLayer_management(downstreamLayer, downstreamSymbology)
-    arcpy.SaveToLayerFile_management(downstreamLayer, downstreamLayer)    
+    arcpy.SaveToLayerFile_management(downstreamLayer, downstreamLayer)
 
+    streamNetworkLayer = streamNetworkOrig[:-4] + '.lyr'
+    arcpy.MakeFeatureLayer_management(streamNetworkOrig, streamNetworkLayer)
+    arcpy.SaveToLayerFile_management(streamNetworkLayer, streamNetworkLayer)
 
-
+    layerPackageFolder = makeFolder(outputDataPath, "03_LayerPackage")
+    layerPackage = os.path.join(layerPackageFolder, "layerPackage.lpkx")
+    layers = [pointLayer, upstreamLayer, downstreamLayer, demLayer, streamNetworkLayer]
+    for layer in layers:
+        arcpy.AddMessage(layer)
+    arcpy.PackageLayer_management(layers, layerPackage)
 
 
 def createProject(dem, streamNetwork, clippingRegion, outputFolder, clippedStreamNetwork, outputName, spatialReference,
@@ -347,16 +353,28 @@ def createProject(dem, streamNetwork, clippingRegion, outputFolder, clippedStrea
     analysesFolder = makeFolder(projectFolder, "02_Analyses")
 
     demFolder = makeFolder(inputsFolder, "01_DEM")
-    arcpy.Copy_management(dem, os.path.join(demFolder, os.path.join(os.path.basename(dem))))
+    demTempLayer = os.path.join(demFolder, os.path.basename(dem) + "_lyr")
+    demLayer = os.path.join(demFolder, os.path.basename(dem)[:-4] + ".lyr")
+    demFile = os.path.join(demFolder, os.path.join(os.path.basename(dem)))
+    arcpy.Copy_management(dem, demFile)
+
+    symbologyFolder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'symbology') # gives us the symbology folder
+    demSymbology = os.path.join(symbologyFolder,"DEM.lyr")
+    arcpy.MakeRasterLayer_management(demFile, demTempLayer)
+    arcpy.SaveToLayerFile_management(demTempLayer, demLayer)
+    arcpy.ApplySymbologyFromLayer_management(demLayer, demSymbology)
+    arcpy.SaveToLayerFile_management(demLayer, demLayer)
+
     streamNetworkFolder = makeFolder(inputsFolder, "02_StreamNetwork")
     arcpy.Copy_management(streamNetwork, os.path.join(streamNetworkFolder, os.path.basename(streamNetwork)))
+    streamNetworkOrig = os.path.join(streamNetworkFolder, os.path.basename(streamNetwork))
     if clippingRegion:
         clippingRegionFolder = makeFolder(inputsFolder, "03_ClippingRegionFolder")
         arcpy.Copy_management(clippingRegion, os.path.join(clippingRegionFolder, os.path.basename(clippingRegion)))
 
     outputFolder = getOutputFolder(analysesFolder)
 
-    writeOutput(intersectionArray, outputFolder, outputName, spatialReference, clippedStreamNetwork)
+    writeOutput(intersectionArray, outputFolder, outputName, spatialReference, clippedStreamNetwork, demLayer, streamNetworkOrig)
 
 
 def getOutputFolder(analysesFolder):
