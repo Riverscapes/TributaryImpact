@@ -329,8 +329,11 @@ def makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer,
     layerPackage = os.path.join(layerPackageFolder, "layerPackage.lpkx")
     layers = [pointLayer, upstreamLayer, downstreamLayer, demLayer, streamNetworkLayer]
 
-    if arcpy.GetInstallInfo()['Version'] != '10.6':
+    try:
         arcpy.PackageLayer_management(layers, layerPackage)
+    except:
+        arcpy.AddWarning('We could not package the output into a single layer package. This is often a result of a ' +
+                         'known bug in ArcGIS 10.6. You may try packaging the outputs together yourself if you wish to')
 
 
 def createProject(dem, streamNetwork, clippingRegion, outputFolder, clippedStreamNetwork, outputName, spatialReference,
