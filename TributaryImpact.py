@@ -328,9 +328,9 @@ def makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer,
     layerPackageFolder = makeFolder(outputDataPath, "03_LayerPackage")
     layerPackage = os.path.join(layerPackageFolder, "layerPackage.lpkx")
     layers = [pointLayer, upstreamLayer, downstreamLayer, demLayer, streamNetworkLayer]
-    for layer in layers:
-        arcpy.AddMessage(layer)
-    arcpy.PackageLayer_management(layers, layerPackage)
+
+    if arcpy.GetInstallInfo()['Version'] != '10.6':
+        arcpy.PackageLayer_management(layers, layerPackage)
 
 
 def createProject(dem, streamNetwork, clippingRegion, outputFolder, clippedStreamNetwork, outputName, spatialReference,
