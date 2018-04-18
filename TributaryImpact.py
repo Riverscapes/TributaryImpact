@@ -260,25 +260,24 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
     numReachesString = str(numReaches)
 
     i = 1
-    arcpy.SetProgressor("step", "Adding to row " + str(i) + " out of " + numReachesString, 0,
-                        numReaches, 1)
-    for row in rows:
-        currentStream = row[0]
-        for intersection in intersectionArray:
-            if pointsAreEqual(currentStream.firstPoint, intersection.point, .01):
-                row[1] = intersection.impact
-                rows.updateRow(row)
-            if pointsAreEqual(currentStream.lastPoint, intersection.point, .01):
-                row[2] = intersection.impact
-                rows.updateRow(row)
+    arcpy.SetProgressor("step", "Adding to row " + str(i) + " out of " + numReachesString, 0, numReaches, 1)
+    row = rows.next()
+
+    while row is not None:
+        addImpactToStream(rows, row, intersectionArray)
+
+        try:
+            row = rows.next()
+        except StopIteration:
+            row = None
 
         i += 1
         arcpy.SetProgressorLabel("Adding to row " + str(i) + " out of " + numReachesString)
         arcpy.SetProgressorPosition()
 
-    del row
-    del rows
+    del rows, row
 
+    arcpy.AddMessage("Creating layers...")
     fields = arcpy.ListFields(streamNetwork)
     for field in fields:
         if not field.required and field.name != "UStreamIP" and field.name != 'DStreamIP':
@@ -290,6 +289,18 @@ def writeOutput(intersectionArray, outputDataPath, outputName, spatialReference,
     arcpy.MakeFeatureLayer_management(streamNetwork, downstreamLayer)
 
     makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer, streamNetwork, demLayer, streamNetworkOriginal)
+
+
+def addImpactToStream(rows, currentRow, intersectionArray):
+    currentStream = currentRow[0]  # we need current stream
+
+    for intersection in intersectionArray:
+        if pointsAreEqual(currentStream.firstPoint, intersection.point):
+            currentRow[1] = intersection.impact
+            rows.updateRow(currentRow)
+        if pointsAreEqual(currentStream.lastPoint, intersection.point):
+            currentRow[2] = intersection.impact
+            rows.updateRow(currentRow)
 
 
 def makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer, streamNetwork, demLayer, streamNetworkOrig):
@@ -409,7 +420,7 @@ def makeFolder(pathToLocation, newFolderName):
     return newFolder
 
 
-def pointsAreEqual(pointOne, pointTwo, buf):
+def pointsAreEqual(pointOne, pointTwo, buf=0.01):
     x1 = float(pointOne.X)
     x2 = float(pointTwo.X)
     y1 = float(pointOne.Y)
