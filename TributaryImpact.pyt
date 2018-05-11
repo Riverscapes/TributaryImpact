@@ -89,6 +89,7 @@ class TributaryImpactTool(object):
 
    def execute(self, parameters, messages):
        """The source code of the tool."""
+       reload(TributaryImpact)
        TributaryImpact.main(parameters[0].valueAsText,
            parameters[1].valueAsText,
            parameters[2].valueAsText,

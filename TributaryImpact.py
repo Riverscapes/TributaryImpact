@@ -344,7 +344,7 @@ def makeLayerPackage(outputDataPath, pointLayer, upstreamLayer, downstreamLayer,
         arcpy.PackageLayer_management(layers, layerPackage)
     except:
         arcpy.AddWarning('We could not package the output into a single layer package. This is often a result of a ' +
-                         'known bug in ArcGIS 10.6. You may try packaging the outputs together yourself if you wish to')
+                         'known bug in ArcGIS 10.6. You may try packaging the outputs together yourself if you wish')
 
 
 def createProject(dem, streamNetwork, clippingRegion, outputFolder, clippedStreamNetwork, outputName, spatialReference,
