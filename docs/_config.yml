@@ -1,7 +1,7 @@
 # Site title will be used everywhere
 title: Tributary Impact Tool
 description: > # this means to ignore newlines until "baseurl:"
-  Online help and documentation site for the Tributary Impac Tool
+  Online help and documentation site for the Tributary Impact Tool
 
 # Final root url of the site. No ending slash. No subdirectory
 url: http://tributaryimpact.riverscapes.xyz
