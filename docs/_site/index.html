@@ -1,3 +1,120 @@
-<h1 id="about">About</h1>
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta charset="utf-8">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Tributary Impact Tool</title>
 
-<p>This is a basic folder for the Tributary Impact GitHub page.</p>
+      <meta name="viewport" content="width=device-width">
+      <link rel="stylesheet" href="/assets/css/style.css">
+      <link rel="stylesheet" href="/assets/css/custom.css">
+
+      <link rel="apple-touch-icon" sizes="57x57" href="/assets/images/favicons/apple-icon-57x57.png">
+      <link rel="apple-touch-icon" sizes="60x60" href="/assets/images/favicons/apple-icon-60x60.png">
+      <link rel="apple-touch-icon" sizes="72x72" href="/assets/images/favicons/apple-icon-72x72.png">
+      <link rel="apple-touch-icon" sizes="76x76" href="/assets/images/favicons/apple-icon-76x76.png">
+      <link rel="apple-touch-icon" sizes="114x114" href="/assets/images/favicons/apple-icon-114x114.png">
+      <link rel="apple-touch-icon" sizes="120x120" href="/assets/images/favicons/apple-icon-120x120.png">
+      <link rel="apple-touch-icon" sizes="144x144" href="/assets/images/favicons/apple-icon-144x144.png">
+      <link rel="apple-touch-icon" sizes="152x152" href="/assets/images/favicons/apple-icon-152x152.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/favicons/apple-icon-180x180.png">
+      <link rel="icon" type="image/png" sizes="192x192"  href="/assets/images/favicons/android-icon-192x192.png">
+      <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicons/favicon-32x32.png">
+      <link rel="icon" type="image/png" sizes="96x96" href="/assets/images/favicons/favicon-96x96.png">
+      <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicons/favicon-16x16.png">
+      <link rel="manifest" href="/assets/images/favicons/manifest.json">
+      <meta name="msapplication-TileColor" content="#ffffff">
+      <meta name="msapplication-TileImage" content="/assets/images/favicons/ms-icon-144x144.png">
+      <meta name="theme-color" content="#ffffff">
+      <link rel="shortcut icon" href="/assets/images/favicons/favicon.ico" />
+
+      <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+  </head>
+
+  <body>
+
+  <header>
+    <div id="topbarnav"></div>
+    <div id="headcallout" class="text-center callout large">
+      
+      <h1>Tributary Impact Tool</h1>
+        
+      
+    </div>
+  </header>
+
+  <div id="inner-wrapper">
+    <div id="inner" class="row">
+      <div id="main" class="large-8 columns large-push-4">
+        <section><h1 id="about">About</h1>
+<p>The Tributary Impact Tool is a Python script for ArcGIS which finds intersections in a stream network and calculates the percent chance of the tributary creating a large fan in the mainstem when the tributary dumps its sediment load. The equation used to find this percentage is based on the one found in the paper <em>Tributary Connectivity, Confluence Aggradation and Network Biodiversity</em> by Stephen P. Rice. A full citation for the paper can be found at the bottom of the page.</p>
+
+<h1 id="inputs">Inputs</h1>
+<p>The tool requires a stream network shape file, a DEM, a folder to place the output in, and a name to give to the output. The user can optionally provide the tool with a Flow Accumulation input to save time; if the user does not, the tool will create a temporary one for use in the tool automatically. The user can also provide the tool with a shapefile containing a polygon that the stream network will be clipped to. This can be useful if the user only wants to run the tool on a limited portion of the stream network.</p>
+
+<h1 id="running-the-tool">Running the Tool</h1>
+<h4 id="make-sure-all-your-inputs-use-the-same-projection">Make sure all your inputs use the same projection</h4>
+<p>If the inputs use different projections, the tool will give you an error.</p>
+<h4 id="keep-the-stream-network-over-the-dem-and-flow-accumulation-map">Keep the stream network over the DEM and Flow Accumulation map</h4>
+<p>The program won’t crash if there is one stream that slips off the DEM, but the program will waste time trying to find the impact chance of data that isn’t there. If large sections of your stream network are off of your DEM or Flow Accumulation map, use a clipping region to make sure the tool focuses on streams that it can find a result for.</p>
+
+<h1 id="outputs">Outputs</h1>
+<p>The tool produces two outputs: a shapefile of points, and a shapefile with the stream network.</p>
+
+<h2 id="points">Points</h2>
+<p>Each point has the percent chance of a large fan being created. These points coincide with the intersections in the stream network.</p>
+
+<h2 id="stream-network">Stream network</h2>
+<p>If the user doesn’t use a clipping region, the stream network is a copy of the entire network. If the user does use a clipping region, the stream network is the entire network, clipped to the clipping region. The stream network is given two new attributes: an upstream impact chance, labeled as “UStreamIP”, and a downstream impact chance, labeled as “DStreamIP”. The upstream impact chance indicates the chances of the stream being upstream of a large fan. The downstream impact chance indicates the chances of the stream being downstream of a large fan. These values are the same as the ones in the Points file, just displayed differently.</p>
+
+<h1 id="citation">Citation</h1>
+<Insert Citation="" Here="">
+</Insert>
+</section>
+      </div>
+      <div id="sidebar" class="large-4 columns large-pull-8">
+          
+	
+
+
+<div class="title-bar">
+	<div class="title-bar-title"><i class="fa fa-sitemap"></i> Site Contents
+		<div id="menuCtls" class="button-group tiny show-for-medium">
+				<span id="expand" class="button primary fa fa-plus has-tip top" data-tooltip title="Expand all items" aria-haspopup="true" data-disable-hover="false" ></span>
+				<span id="contract" class="button primary fa fa-minus has-tip top" data-tooltip title="Contract all items" aria-haspopup="true" data-disable-hover="false" ></span>
+			</div>	
+	</div>
+</div>
+ <div id="sidenav">
+			<ul id='HTMLOnlyNav'>							<li><a href='/assets/css/style.css'></a></li>							<li><a href='/assets/images/favicons/manifest.json'></a></li>							<li><a href='/assets/js/nav.js'>Test</a></li>							<li><a href='/'>Tributary Impact Tool</a></li>		</ul>	
+</div>
+
+<!-- Sidebar is where the extended sidepanel stuff like mailchimp forms go -->
+<!-- USe this file in your theme to include a mailchimp sidebar or whatever -->
+        </div>
+    </div>
+  </div>
+
+
+    <footer id="footer" class="row">
+<div id="rightslogo">
+    <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank">
+        <img src="/assets/images/cc-watermarks-riverscapes_orig.png" alt="Picture">
+    </a>
+</div>
+</footer>
+    
+
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/js/motion-ui.min.js"></script>
+    <script src="/assets/js/foundation.min.js"></script>
+    <script src="/assets/js/toc.js"></script>
+    <script src="/assets/js/nav.js"></script>
+    <script src="/assets/js/app.js"></script>
+
+  </body>
+
+</html>
