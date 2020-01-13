@@ -2,7 +2,7 @@
 
 ### What is this repository for? ###
 
-The Tributary Impact tool finds intersections in a stream network and calculates the likelyhood of the tributary forming a fan where it intersects the mainstem, based on the findings in 
+The Tributary Impact tool finds intersections in a stream network and calculates the likelyhood of the tributary forming a fan where it intersects the mainstem, based on the findings in *Tributary Connectivity, Confluence Aggradation and Network Biodiversity* by Stephen P. Rice.
 
 ### What inputs do I need to run this tool? ###
 
