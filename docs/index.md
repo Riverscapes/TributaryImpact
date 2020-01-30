@@ -24,4 +24,4 @@ Each point has the percent chance of a large fan being created. These points coi
 If the user doesn't use a clipping region, the stream network is a copy of the entire network. If the user does use a clipping region, the stream network is the entire network, clipped to the clipping region. The stream network is given two new attributes: an upstream impact chance, labeled as "UStreamIP", and a downstream impact chance, labeled as "DStreamIP". The upstream impact chance indicates the chances of the stream being upstream of a large fan. The downstream impact chance indicates the chances of the stream being downstream of a large fan. These values are the same as the ones in the Points file, just displayed differently.
 
 # Citation
-<Insert Citation Here>
+- Rice SP. 2017. Tributary connectivity, confluence aggradation and network biodiversity. Geomorphology 277 : 6–16. DOI: [10.1016/j.geomorph.2016.03.027](http://dx.doi.org/10.1016/j.geomorph.2016.03.027)
