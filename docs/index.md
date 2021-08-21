@@ -11,7 +11,7 @@ The tool requires a stream network shape file, a DEM, a folder to place the outp
 # Running the Tool
 <div align="center">
   <a class="button" href="https://github.com/Riverscapes/TributaryImpact/releases/latest"><i class="fa fa-github"/> Download Latest Release of Tributary Impact Tool</a>
-  <a class="button" https://github.com/Riverscapes/TributaryImpact"><i class="fa fa-github"/> Visit Tributary Impact Tool Repo</a>  
+  <a class="button" href="https://github.com/Riverscapes/TributaryImpact"><i class="fa fa-github"/> Visit Tributary Impact Tool Repo</a>  
 </div>
   
 #### Make sure all your inputs use the same projection
