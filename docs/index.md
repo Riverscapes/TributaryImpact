@@ -10,10 +10,13 @@ The tool requires a stream network shape file, a DEM, a folder to place the outp
 
 # Running the Tool
 
+
 <div align="center">
-  <a class="button" href="https://github.com/Riverscapes/TributaryImpact/releases/latest"><i class="fa fa-github"/> Download Latest Release of Tributary Impact Tool</a>
-  <a class="button" href="https://github.com/Riverscapes/TributaryImpact"><i class="fa fa-github"/> Visit Tributary Impact Tool Repo</a>  
+	<a class="button" href="https://github.com/Riverscapes/TributaryImpact/releases/latest"><i class="fa fa-github" aria-hidden="true"></i> Download Latest Release of Tributary Impact Tool</a>
+<a class="button" href="https://github.com/Riverscapes/TributaryImpact"><i class="fa fa-github" aria-hidden="true"></i> Visit Tributary Impact Tool Repo</a>  
+
 </div>
+
 
 #### Make sure all your inputs use the same projection
 If the inputs use different projections, the tool will give you an error.
