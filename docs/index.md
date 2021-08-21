@@ -9,11 +9,12 @@ The Tributary Impact Tool is a Python script for ArcGIS which finds intersection
 The tool requires a stream network shape file, a DEM, a folder to place the output in, and a name to give to the output. The user can optionally provide the tool with a Flow Accumulation input to save time; if the user does not, the tool will create a temporary one for use in the tool automatically. The user can also provide the tool with a shapefile containing a polygon that the stream network will be clipped to. This can be useful if the user only wants to run the tool on a limited portion of the stream network.
 
 # Running the Tool
+
 <div align="center">
   <a class="button" href="https://github.com/Riverscapes/TributaryImpact/releases/latest"><i class="fa fa-github"/> Download Latest Release of Tributary Impact Tool</a>
   <a class="button" href="https://github.com/Riverscapes/TributaryImpact"><i class="fa fa-github"/> Visit Tributary Impact Tool Repo</a>  
 </div>
-  
+
 #### Make sure all your inputs use the same projection
 If the inputs use different projections, the tool will give you an error.
 #### Keep the stream network over the DEM and Flow Accumulation map
